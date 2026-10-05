@@ -146,14 +146,23 @@ MAILERS = {
     },
 }
 
+# ====================== RAILWAY CSRF FIX ======================
 CSRF_TRUSTED_ORIGINS = [
     "https://cafe-crispy-pos-production.up.railway.app",
-    "https://*.up.railway.app",
+]
+
+ALLOWED_HOSTS = [
+    "cafe-crispy-pos-production.up.railway.app",
+    ".up.railway.app",
+    "localhost",
+    "127.0.0.1",
 ]
 
 CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False
+# ==============================================================
