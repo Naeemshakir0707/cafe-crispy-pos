@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Receipt - {{ sale.invoice_no }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        .receipt {
+            width: 300px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px 16px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .restaurant-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .small { font-size: 12px; line-height: 1.4; }
+        .line {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        .double-line {
+            border-top: 2px solid #000;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .items-table td, .totals-table td {
+            padding: 3px 0;
+        }
+        .right { text-align: right; }
+        .footer {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        .print-btn {
+            display: block;
+            width: 300px;
+            margin: 20px auto;
+            padding: 12px;
+            background: #198754;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .receipt { box-shadow: none; width: 100%; max-width: 300px; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+{% if error %}
+    <div class="receipt center">
+        <h3>Receipt not found</h3>
+        <a href="/pos/" class="back-link">← Back to POS</a>
+    </div>
+{% else %}
+
+<div class="receipt">
+    <!-- Header -->
+    <div class="center">
+        <div class="restaurant-name">{{ restaurant.name }}</div>
+        <div class="small">
+            {% if restaurant.address %}{{ restaurant.address }}<br>{% endif %}
+            {% if restaurant.phone %}Tel: {{ restaurant.phone }}{% endif %}
+        </div>
+    </div>
+
+    <div class="line"></div>
+
+    <!-- Invoice Info -->
+    <div class="small">
+        <table>
+            <tr>
+                <td>Invoice:</td>
+                <td class="right bold">{{ sale.invoice_no }}</td>
+            </tr>
+            <tr>
+                <td>Date:</td>
+                <td class="right">{{ sale.created_at|date:"d M Y, h:i A" }}</td>
+            </tr>
+            <tr>
+                <td>Type:</td>
+                <td class="right">{{ sale.get_order_type_display }}</td>
+            </tr>
+            {% if sale.created_by %}
+            <tr>
+                <td>Cashier:</td>
+                <td class="right">{{ sale.created_by.username }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <!-- Customer Details (for Delivery) -->
+    {% if sale.customer %}
+    <div class="line"></div>
+    <div class="small">
+        <div class="bold">Customer Details</div>
+        <table>
+            <tr>
+                <td>Name:</td>
+                <td class="right">{{ sale.customer.name }}</td>
+            </tr>
+            {% if sale.customer.mobile %}
+            <tr>
+                <td>Mobile:</td>
+                <td class="right">{{ sale.customer.mobile }}</td>
+            </tr>
+            {% endif %}
+            {% if sale.customer.address %}
+            <tr>
+                <td>Address:</td>
+                <td class="right">{{ sale.customer.address }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="line"></div>
+
+    <!-- Items -->
+    <table class="items-table">
+        <thead>
+            <tr class="bold">
+                <td>Item</td>
+                <td class="right">Qty</td>
+                <td class="right">Amount</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td class="right">{{ item.quantity }}</td>
+                <td class="right">{{ item.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="line"></div>
+
+    <!-- Totals -->
+    <table class="totals-table">
+        <tr>
+            <td>Subtotal</td>
+            <td class="right">Rs. {{ sale.subtotal }}</td>
+        </tr>
+        {% if sale.discount > 0 %}
+        <tr>
+            <td>Discount</td>
+            <td class="right">- Rs. {{ sale.discount }}</td>
+        </tr>
+        {% endif %}
+        {% if sale.delivery_charge > 0 %}
+        <tr>
+            <td>Delivery Charge</td>
+            <td class="right">Rs. {{ sale.delivery_charge }}</td>
+        </tr>
+        {% endif %}
+        <tr class="bold" style="font-size: 15px;">
+            <td>Total</td>
+            <td class="right">Rs. {{ sale.total }}</td>
+        </tr>
+    </table>
+
+    <div class="double-line"></div>
+
+    <div class="center footer">
+        <p class="bold">Thank you for your order!</p>
+        <p>Please visit us again</p>
+    </div>
+</div>
+
+<div class="no-print">
+    <button class="print-btn" onclick="window.print()">Print Receipt</button>
+    <a href="/pos/" class="back-link">← Back to POS</a>
+</div>
+
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+web: gunicorn cafe_crispy.wsgi --log-file -
