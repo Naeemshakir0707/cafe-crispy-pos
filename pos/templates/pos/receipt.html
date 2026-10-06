@@ -283,7 +283,30 @@
     </div>
 
     <div class="line"></div>
-
+{% if sale.customer %}
+<div class="line"></div>
+<div class="small">
+    <div class="bold">Customer Details</div>
+    <table>
+        <tr>
+            <td>Name:</td>
+            <td class="right">{{ sale.customer.name }}</td>
+        </tr>
+        {% if sale.customer.mobile %}
+        <tr>
+            <td>Mobile:</td>
+            <td class="right">{{ sale.customer.mobile }}</td>
+        </tr>
+        {% endif %}
+        {% if sale.customer.address %}
+        <tr>
+            <td>Address:</td>
+            <td class="right">{{ sale.customer.address }}</td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+{% endif %}
     <table>
         <thead>
             <tr class="bold">
