@@ -34,3 +34,9 @@ urlpatterns = [
     path('search-customers/', views.search_customers, name='search_customers'),
     path('daily-closing/', views.daily_closing, name='daily_closing'),
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
