@@ -346,8 +346,11 @@ def manage_products(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    from .models import DealComponent
+
     products = Product.objects.filter(restaurant=restaurant).select_related('category').order_by('name')
     categories = Category.objects.filter(restaurant=restaurant, is_active=True)
+    all_products = Product.objects.filter(restaurant=restaurant, is_active=True)  # for deal components
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -357,14 +360,18 @@ def manage_products(request):
             category_id = request.POST.get('category')
             price = request.POST.get('price')
             stock = request.POST.get('stock', 0)
+            is_deal = request.POST.get('is_deal') == 'on'
+            image = request.FILES.get('image')
 
             if name and category_id and price:
-                Product.objects.create(
+                product = Product.objects.create(
                     restaurant=restaurant,
                     name=name,
                     category_id=category_id,
                     price=price,
-                    stock=stock or 0
+                    stock=stock or 0,
+                    is_deal=is_deal,
+                    image=image
                 )
 
         elif action == 'edit':
@@ -373,6 +380,8 @@ def manage_products(request):
             category_id = request.POST.get('category')
             price = request.POST.get('price')
             stock = request.POST.get('stock')
+            is_deal = request.POST.get('is_deal') == 'on'
+            image = request.FILES.get('image')
 
             product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
             if product:
@@ -380,11 +389,33 @@ def manage_products(request):
                 product.category_id = category_id
                 product.price = price
                 product.stock = stock
+                product.is_deal = is_deal
+                if image:
+                    product.image = image
                 product.save()
 
         elif action == 'delete':
             product_id = request.POST.get('product_id')
             Product.objects.filter(id=product_id, restaurant=restaurant).delete()
+
+        elif action == 'add_component':
+            deal_id = request.POST.get('deal_id')
+            product_id = request.POST.get('component_product')
+            quantity = request.POST.get('quantity', 1)
+
+            deal = Product.objects.filter(id=deal_id, restaurant=restaurant, is_deal=True).first()
+            component_product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
+
+            if deal and component_product:
+                DealComponent.objects.create(
+                    deal=deal,
+                    product=component_product,
+                    quantity=quantity
+                )
+
+        elif action == 'remove_component':
+            component_id = request.POST.get('component_id')
+            DealComponent.objects.filter(id=component_id, deal__restaurant=restaurant).delete()
 
         return redirect('manage_products')
 
@@ -392,6 +423,7 @@ def manage_products(request):
         'restaurant': restaurant,
         'products': products,
         'categories': categories,
+        'all_products': all_products,
     }
     return render(request, 'pos/manage_products.html', context)
 
