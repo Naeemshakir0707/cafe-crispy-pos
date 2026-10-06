@@ -545,3 +545,35 @@ def daily_closing(request):
         'delivery_total': sum(s.total for s in delivery),
     }
     return render(request, 'pos/daily_closing.html', context)
+
+@login_required(login_url='login')
+def stock_adjustment(request):
+    restaurant = get_user_restaurant(request.user)
+    if not restaurant:
+        return render(request, 'pos/no_restaurant.html')
+
+    products = Product.objects.filter(restaurant=restaurant, is_deal=False).order_by('name')
+
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        adjustment = request.POST.get('adjustment')
+        reason = request.POST.get('reason', '').strip()
+
+        try:
+            product = Product.objects.get(id=product_id, restaurant=restaurant)
+            adjustment = int(adjustment)
+
+            product.stock = max(0, product.stock + adjustment)
+            product.save()
+
+            # Optional: You can later log this adjustment if needed
+        except:
+            pass
+
+        return redirect('stock_adjustment')
+
+    context = {
+        'restaurant': restaurant,
+        'products': products,
+    }
+    return render(request, 'pos/stock_adjustment.html', context)

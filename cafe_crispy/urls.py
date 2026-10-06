@@ -33,6 +33,7 @@ urlpatterns = [
     path('cancel-sale/<int:sale_id>/', views.cancel_sale, name='cancel_sale'),
     path('search-customers/', views.search_customers, name='search_customers'),
     path('daily-closing/', views.daily_closing, name='daily_closing'),
+    path('stock-adjustment/', views.stock_adjustment, name='stock_adjustment'),
 ]
 
 from django.conf import settings
