@@ -47,6 +47,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to='products/', blank=True, null=True)
+    is_deal = models.BooleanField(default=False)          # ← New field
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -91,3 +92,11 @@ class SaleItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"
+
+class DealComponent(models.Model):
+    deal = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='components')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='used_in_deals')
+    quantity = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.deal.name} → {self.quantity} × {self.product.name}"
