@@ -45,17 +45,24 @@
             border-collapse: collapse;
             font-size: 12.5px;
         }
-        td { padding: 2px 0; }
+        td { padding: 3px 0; }
         .right { text-align: right; }
 
         .copy-title {
             background: #000;
             color: #fff;
             text-align: center;
-            padding: 4px 0;
+            padding: 5px 0;
             font-size: 13px;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .logo {
+            max-height: 60px;
+            max-width: 160px;
+            margin-bottom: 6px;
         }
 
         .cut-line {
@@ -117,11 +124,14 @@
     </div>
 {% else %}
 
-<!-- ==================== CUSTOMER COPY==CUSTOMER COPY ==================== -->
+<!-- ==================== CUSTOMER COPY ==================== -->
 <div class="receipt">
     <div class="copy-title">CUSTOMER COPY</div>
 
     <div class="center">
+        {% if restaurant.logo %}
+            <img src="{{ restaurant.logo.url }}" class="logo" alt="Logo">
+        {% endif %}
         <div class="restaurant-name">{{ restaurant.name }}</div>
         <div class="small">
             {% if restaurant.address %}{{ restaurant.address }}<br>{% endif %}
@@ -157,7 +167,7 @@
     {% if sale.customer %}
     <div class="line"></div>
     <div class="small">
-        <div class="bold">Customer</div>
+        <div class="bold">Customer Details</div>
         <table>
             <tr>
                 <td>Name:</td>
@@ -215,7 +225,7 @@
         {% endif %}
         {% if sale.delivery_charge > 0 %}
         <tr>
-            <td>Delivery</td>
+            <td>Delivery Charge</td>
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
@@ -236,11 +246,14 @@
 <!-- CUT LINE -->
 <div class="cut-line no-print">✂ - - - - - - Cut Here - - - - - - ✂</div>
 
-<!-- ==================== KITCHEN COPY==KITCHEN COPY ==================== -->
+<!-- ==================== KITCHEN COPY ==================== -->
 <div class="receipt">
     <div class="copy-title">KITCHEN COPY</div>
 
     <div class="center">
+        {% if restaurant.logo %}
+            <img src="{{ restaurant.logo.url }}" class="logo" alt="Logo">
+        {% endif %}
         <div class="restaurant-name">{{ restaurant.name }}</div>
     </div>
 
@@ -253,24 +266,21 @@
                 <td class="right bold">{{ sale.invoice_no }}</td>
             </tr>
             <tr>
-                <td>Time:</td>
-                <td class="right">{{ sale.created_at|date:"h:i A" }}</td>
+                <td>Date:</td>
+                <td class="right">{{ sale.created_at|date:"d M Y, h:i A" }}</td>
             </tr>
             <tr>
                 <td>Type:</td>
                 <td class="right bold">{{ sale.get_order_type_display }}</td>
             </tr>
+            {% if sale.created_by %}
+            <tr>
+                <td>Cashier:</td>
+                <td class="right">{{ sale.created_by.username }}</td>
+            </tr>
+            {% endif %}
         </table>
     </div>
-
-    {% if sale.customer %}
-    <div class="line"></div>
-    <div class="small">
-        <div class="bold">Customer: {{ sale.customer.name }}</div>
-        {% if sale.customer.mobile %}<div>Mobile: {{ sale.customer.mobile }}</div>{% endif %}
-        {% if sale.customer.address %}<div>Address: {{ sale.customer.address }}</div>{% endif %}
-    </div>
-    {% endif %}
 
     <div class="line"></div>
 
@@ -279,16 +289,43 @@
             <tr class="bold">
                 <td>Item</td>
                 <td class="right">Qty</td>
+                <td class="right">Amount</td>
             </tr>
         </thead>
         <tbody>
             {% for item in items %}
             <tr>
-                <td style="font-size: 14px; padding: 4px 0;">{{ item.product.name }}</td>
-                <td class="right bold" style="font-size: 16px;">{{ item.quantity }}</td>
+                <td>{{ item.product.name }}</td>
+                <td class="right">{{ item.quantity }}</td>
+                <td class="right">{{ item.total }}</td>
             </tr>
             {% endfor %}
         </tbody>
+    </table>
+
+    <div class="line"></div>
+
+    <table>
+        <tr>
+            <td>Subtotal</td>
+            <td class="right">Rs. {{ sale.subtotal }}</td>
+        </tr>
+        {% if sale.discount > 0 %}
+        <tr>
+            <td>Discount</td>
+            <td class="right">- Rs. {{ sale.discount }}</td>
+        </tr>
+        {% endif %}
+        {% if sale.delivery_charge > 0 %}
+        <tr>
+            <td>Delivery Charge</td>
+            <td class="right">Rs. {{ sale.delivery_charge }}</td>
+        </tr>
+        {% endif %}
+        <tr class="bold" style="font-size: 14px;">
+            <td>Total</td>
+            <td class="right">Rs. {{ sale.total }}</td>
+        </tr>
     </table>
 
     <div class="double-line"></div>
