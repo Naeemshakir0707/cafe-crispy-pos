@@ -19,7 +19,7 @@
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-dark" style="background-color: {{ restaurant.primary_color|default:'#0d6efd' }};">
+<nav class="navbar navbar-dark" style="background-color: '{{ restaurant.primary_color|default:'#0d6efd' }}';">
     <div class="container-fluid">
         <span class="navbar-brand">{{ restaurant.name }} - Settings</span>
         <div>
@@ -66,13 +66,13 @@
                                 <label class="form-label fw-bold">Primary Color</label>
                                 <input type="color" name="primary_color" class="form-control form-control-color w-100" 
                                        value="{{ restaurant.primary_color|default:'#0d6efd' }}">
-                                <div class="preview-box" style="background-color: {{ restaurant.primary_color|default:'#0d6efd' }};"></div>
+                                <div class="preview-box" style="background-color: '{{ restaurant.primary_color|default:'#0d6efd' }}';"></div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Secondary Color</label>
                                 <input type="color" name="secondary_color" class="form-control form-control-color w-100" 
                                        value="{{ restaurant.secondary_color|default:'#198754' }}">
-                                <div class="preview-box" style="background-color: {{ restaurant.secondary_color|default:'#198754' }};"></div>
+                                <div class="preview-box" style="background-color: '{{ restaurant.secondary_color|default:'#198754' }}';"></div>
                             </div>
                         </div>
 

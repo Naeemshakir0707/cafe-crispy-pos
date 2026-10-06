@@ -4,116 +4,128 @@
     <meta charset="UTF-8">
     <title>Receipt - {{ sale.invoice_no }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        background: #f0f0f0;
+        padding: 20px;
+    }
+
+    .receipt {
+        width: 320px;
+        margin: 0 auto 30px auto;
+        background: white;
+        padding: 20px 16px;
+        box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+
+    .restaurant-name {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    .small {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .line {
+        border-top: 1px dashed #000;
+        margin: 10px 0;
+    }
+
+    .double-line {
+        border-top: 2px solid #000;
+        margin: 10px 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    td {
+        padding: 4px 0;
+    }
+
+    .right { text-align: right; }
+
+    .copy-title {
+        background: #000;
+        color: #fff;
+        text-align: center;
+        padding: 6px 0;
+        font-size: 15px;
+        font-weight: bold;
+        margin-bottom: 12px;
+        letter-spacing: 1px;
+    }
+
+    .logo {
+        max-height: 90px;
+        max-width: 200px;
+        margin-bottom: 8px;
+    }
+
+    .cut-line {
+        text-align: center;
+        margin: 25px 0;
+        font-size: 13px;
+        color: #666;
+        border-top: 2px dashed #999;
+        padding-top: 8px;
+    }
+
+    .print-btn {
+        display: block;
+        width: 320px;
+        margin: 20px auto;
+        padding: 12px;
+        background: #198754;
+        color: white;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    @media print {
         body {
-            font-family: 'Courier New', Courier, monospace;
-            background: #f0f0f0;
-            padding: 20px;
-        }
-
-        .receipt {
-            width: 300px;
-            margin: 0 auto 30px auto;
             background: white;
-            padding: 18px 14px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            padding: 0;
         }
-
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .restaurant-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-        .small { font-size: 12px; line-height: 1.4; }
-        .line {
-            border-top: 1px dashed #000;
-            margin: 8px 0;
-        }
-        .double-line {
-            border-top: 2px solid #000;
-            margin: 8px 0;
-        }
-        table {
+        .receipt {
+            box-shadow: none;
             width: 100%;
-            border-collapse: collapse;
-            font-size: 12.5px;
+            max-width: 320px;
+            page-break-after: always;
         }
-        td { padding: 3px 0; }
-        .right { text-align: right; }
-
-        .copy-title {
-            background: #000;
-            color: #fff;
-            text-align: center;
-            padding: 5px 0;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
+        .no-print {
+            display: none;
         }
-
-        .logo {
-            max-height: 60px;
-            max-width: 160px;
-            margin-bottom: 6px;
-        }
-
         .cut-line {
-            text-align: center;
-            margin: 25px 0;
-            font-size: 12px;
-            color: #666;
-            border-top: 2px dashed #999;
-            padding-top: 8px;
+            border-top: 2px dashed #000;
         }
-
-        .print-btn {
-            display: block;
-            width: 300px;
-            margin: 20px auto;
-            padding: 12px;
-            background: #198754;
-            color: white;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 6px;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 10px;
-            color: #333;
-            font-size: 14px;
-        }
-
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            .receipt {
-                box-shadow: none;
-                width: 100%;
-                max-width: 300px;
-                page-break-after: always;
-            }
-            .no-print {
-                display: none;
-            }
-            .cut-line {
-                border-top: 2px dashed #000;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
 
@@ -229,7 +241,7 @@
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
-        <tr class="bold" style="font-size: 14px;">
+        <tr class="bold" style="font-size: 16px;">
             <td>Total</td>
             <td class="right">Rs. {{ sale.total }}</td>
         </tr>
@@ -345,7 +357,7 @@
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
-        <tr class="bold" style="font-size: 14px;">
+        <tr class="bold" style="font-size: 16px;">
             <td>Total</td>
             <td class="right">Rs. {{ sale.total }}</td>
         </tr>
