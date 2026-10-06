@@ -34,6 +34,7 @@ urlpatterns = [
     path('search-customers/', views.search_customers, name='search_customers'),
     path('daily-closing/', views.daily_closing, name='daily_closing'),
     path('stock-adjustment/', views.stock_adjustment, name='stock_adjustment'),
+    path('settings/', views.restaurant_settings, name='restaurant_settings'),
 ]
 
 from django.conf import settings

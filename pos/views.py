@@ -577,3 +577,28 @@ def stock_adjustment(request):
         'products': products,
     }
     return render(request, 'pos/stock_adjustment.html', context)
+
+@login_required(login_url='login')
+def restaurant_settings(request):
+    restaurant = get_user_restaurant(request.user)
+    if not restaurant:
+        return render(request, 'pos/no_restaurant.html')
+
+    if request.method == 'POST':
+        # Update name, colors and logo
+        restaurant.name = request.POST.get('name', restaurant.name)
+        restaurant.primary_color = request.POST.get('primary_color', restaurant.primary_color)
+        restaurant.secondary_color = request.POST.get('secondary_color', restaurant.secondary_color)
+        restaurant.address = request.POST.get('address', restaurant.address)
+        restaurant.phone = request.POST.get('phone', restaurant.phone)
+
+        if request.FILES.get('logo'):
+            restaurant.logo = request.FILES.get('logo')
+
+        restaurant.save()
+        return redirect('restaurant_settings')
+
+    context = {
+        'restaurant': restaurant,
+    }
+    return render(request, 'pos/restaurant_settings.html', context)
