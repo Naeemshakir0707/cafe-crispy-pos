@@ -216,7 +216,11 @@
                         <div class="price-badge text-center">Rs. {{ product.price }}</div>
                         <div class="p-2 text-center">
                             <h6 class="mb-1" style="font-size: 13px;">{{ product.name }}</h6>
-                            <small class="text-muted">Stock: {{ product.stock }}</small>
+                            {% if product.is_deal %}
+                                <small class="text-info fw-bold">Deal</small>
+                            {% else %}
+                                <small class="text-muted">Stock: {{ product.stock }}</small>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

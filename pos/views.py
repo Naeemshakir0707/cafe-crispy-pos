@@ -360,16 +360,16 @@ def manage_products(request):
             category_id = request.POST.get('category')
             price = request.POST.get('price')
             stock = request.POST.get('stock', 0)
-            is_deal = request.POST.get('is_deal') == 'on'
+            is_deal = True if request.POST.get('is_deal') == 'on' else False
             image = request.FILES.get('image')
 
             if name and category_id and price:
-                product = Product.objects.create(
+                Product.objects.create(
                     restaurant=restaurant,
                     name=name,
                     category_id=category_id,
                     price=price,
-                    stock=stock or 0,
+                    stock=0 if is_deal else (stock or 0),
                     is_deal=is_deal,
                     image=image
                 )
@@ -379,8 +379,8 @@ def manage_products(request):
             name = request.POST.get('name')
             category_id = request.POST.get('category')
             price = request.POST.get('price')
-            stock = request.POST.get('stock')
-            is_deal = request.POST.get('is_deal') == 'on'
+            stock = request.POST.get('stock', 0)
+            is_deal = True if request.POST.get('is_deal') == 'on' else False
             image = request.FILES.get('image')
 
             product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
@@ -388,10 +388,16 @@ def manage_products(request):
                 product.name = name
                 product.category_id = category_id
                 product.price = price
-                product.stock = stock
                 product.is_deal = is_deal
+
+                if is_deal:
+                    product.stock = 0
+                else:
+                    product.stock = stock or 0
+
                 if image:
                     product.image = image
+
                 product.save()
 
         elif action == 'delete':
