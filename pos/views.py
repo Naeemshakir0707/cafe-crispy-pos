@@ -585,17 +585,19 @@ def restaurant_settings(request):
         return render(request, 'pos/no_restaurant.html')
 
     if request.method == 'POST':
-        # Update name, colors and logo
-        restaurant.name = request.POST.get('name', restaurant.name)
-        restaurant.primary_color = request.POST.get('primary_color', restaurant.primary_color)
-        restaurant.secondary_color = request.POST.get('secondary_color', restaurant.secondary_color)
-        restaurant.address = request.POST.get('address', restaurant.address)
-        restaurant.phone = request.POST.get('phone', restaurant.phone)
+        restaurant.name = request.POST.get('name', restaurant.name).strip()
+        restaurant.address = request.POST.get('address', '').strip()
+        restaurant.phone = request.POST.get('phone', '').strip()
+        restaurant.primary_color = request.POST.get('primary_color', '#0d6efd')
+        restaurant.secondary_color = request.POST.get('secondary_color', '#198754')
 
+        # Only update logo if a new file is uploaded
         if request.FILES.get('logo'):
             restaurant.logo = request.FILES.get('logo')
 
         restaurant.save()
+        
+        # Force refresh
         return redirect('restaurant_settings')
 
     context = {
