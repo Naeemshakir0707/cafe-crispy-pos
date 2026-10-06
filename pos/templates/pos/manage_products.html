@@ -56,9 +56,12 @@
                     <label class="form-label">Price (Rs.)</label>
                     <input type="number" name="price" class="form-control" step="0.01" required>
                 </div>
-                <div class="col-md-1">
-                    <label class="form-label">Stock</label>
-                    <input type="number" name="stock" class="form-control" value="0">
+                <div class="col-md-1"> {% if product.is_deal %}
+                    <span class="badge bg-info">Deal</span>
+                    <input type="hidden" name="stock" value="0">
+                    {% else %}
+                    <input type="number" name="stock" value="{{ product.stock }}" class="form-control form-control-sm">
+                    {% endif %}
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Image</label>
@@ -66,7 +69,7 @@
                 </div>
                 <div class="col-md-1 d-flex align-items-end">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="is_deal" id="is_deal">
+                        <input class="form-check-input" type="checkbox" name="is_deal" id="is_deal" onchange="toggleStockField()">
                         <label class="form-check-label" for="is_deal">Is Deal?</label>
                     </div>
                 </div>
@@ -180,4 +183,15 @@
 </div>
 
 </body>
+<script>
+    function toggleStockField() {
+        const isDeal = document.getElementById('is_deal').checked;
+        const stockField = document.getElementById('stock-field');
+        if (isDeal) {
+            stockField.style.display = 'none';
+        } else {
+            stockField.style.display = 'block';
+        }
+    }
+</script>
 </html>
