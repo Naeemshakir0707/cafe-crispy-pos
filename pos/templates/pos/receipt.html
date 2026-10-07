@@ -14,6 +14,7 @@
         font-family: 'Courier New', Courier, monospace;
         background: #f0f0f0;
         padding: 20px;
+        font-weight: bold;          /* All text bold by default */
     }
 
     .receipt {
@@ -22,20 +23,22 @@
         background: white;
         padding: 20px 16px;
         box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        font-weight: bold;
     }
 
     .center { text-align: center; }
     .bold { font-weight: bold; }
 
     .restaurant-name {
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 4px;
+        font-size: 24px;            /* Bigger heading */
+        font-weight: 900;
+        margin-bottom: 6px;
     }
 
     .small {
         font-size: 14px;
         line-height: 1.5;
+        font-weight: bold;
     }
 
     .line {
@@ -52,10 +55,12 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
+        font-weight: bold;
     }
 
     td {
         padding: 4px 0;
+        font-weight: bold;
     }
 
     .right { text-align: right; }
@@ -64,17 +69,22 @@
         background: #000;
         color: #fff;
         text-align: center;
-        padding: 6px 0;
-        font-size: 15px;
-        font-weight: bold;
+        padding: 7px 0;
+        font-size: 16px;            /* Bigger heading */
+        font-weight: 900;
         margin-bottom: 12px;
         letter-spacing: 1px;
     }
 
     .logo {
-        max-height: 90px;
-        max-width: 200px;
+        max-height: 95px;
+        max-width: 210px;
         margin-bottom: 8px;
+    }
+
+    .total-row {
+        font-size: 17px !important;
+        font-weight: 900 !important;
     }
 
     .cut-line {
@@ -111,12 +121,14 @@
         body {
             background: white;
             padding: 0;
+            font-weight: bold;
         }
         .receipt {
             box-shadow: none;
             width: 100%;
             max-width: 320px;
             page-break-after: always;
+            font-weight: bold;
         }
         .no-print {
             display: none;
@@ -241,7 +253,7 @@
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
-        <tr class="bold" style="font-size: 16px;">
+        <tr class="total-row">
             <td>Total</td>
             <td class="right">Rs. {{ sale.total }}</td>
         </tr>
@@ -357,7 +369,7 @@
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
-        <tr class="bold" style="font-size: 16px;">
+        <tr class="total-row">
             <td>Total</td>
             <td class="right">Rs. {{ sale.total }}</td>
         </tr>
