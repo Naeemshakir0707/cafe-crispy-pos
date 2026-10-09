@@ -177,10 +177,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False
 # ==============================================================
 
-# Media files (uploads)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 # ====================== CLOUDINARY ======================
 import cloudinary
 import cloudinary.uploader
