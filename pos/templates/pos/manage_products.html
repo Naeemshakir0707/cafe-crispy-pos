@@ -10,7 +10,7 @@
             width: 50px;
             height: 50px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -91,7 +91,9 @@
                         {% if product.image %}
                             <img src="{{ product.image.url }}" class="product-img-thumb">
                         {% else %}
-                            <div class="bg-secondary text-white text-center product-img-thumb d-flex align-items-center justify-content-center small">No Img</div>
+                            <div class="product-img-thumb d-flex align-items-center justify-content-center bg-light border">
+                                <span style="font-size: 20px;">🍽️</span>
+                            </div>
                         {% endif %}
                     </div>
                     <div class="col-md-2">

@@ -94,9 +94,30 @@
             background: #f0f0f0;
         }
         .product-img {
-            height: 80px;
-            object-fit: cover;
+            height: 100px;
             width: 100%;
+            object-fit: cover;
+            background-color: #f8f9fa;
+        }
+        .product-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            }
+        .price-badge {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 5px 0;
         }
         @media (max-width: 991px) {
             .cart-section { order: -1; margin-bottom: 15px; }
@@ -197,41 +218,34 @@
         </div>
 
         <!-- ==================== PRODUCTS ==================== -->
-        <div class="col-lg-7 products-section">
-            <div class="mb-3 d-flex gap-2 overflow-auto pb-2" style="white-space: nowrap;">
-                <button class="btn btn-sm category-btn active" onclick="filterCategory('all', this)">All</button>
-                {% for category in categories %}
-                    <button class="btn btn-sm btn-outline-dark category-btn" onclick="filterCategory('{{ category.id }}', this)">
-                        {{ category.name }}
-                    </button>
-                {% endfor %}
-            </div>
-
-            <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
-                {% for product in products %}
-                <div class="col product-item" data-category="{{ product.category.id }}">
-                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', '{{ product.price }}')">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
-                        {% endif %}
-                        <div class="price-badge text-center">Rs. {{ product.price }}</div>
-                        <div class="p-2 text-center">
-                            <h6 class="mb-1" style="font-size: 13px;">{{ product.name }}</h6>
-                            {% if product.is_deal %}
-                                <small class="text-info fw-bold">Deal</small>
-                            {% else %}
-                                <small class="text-muted">Stock: {{ product.stock }}</small>
-                            {% endif %}
-                        </div>
-                    </div>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
+    {% for product in products %}
+    <div class="col product-item" data-category="{{ product.category.id }}">
+        <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }})">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
+            {% else %}
+                <div class="product-img d-flex align-items-center justify-content-center bg-light">
+                    <span style="font-size: 32px;">🍽️</span>
                 </div>
-                {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-warning text-center">No products found.</div>
-                </div>
-                {% endfor %}
+            {% endif %}
+            <div class="price-badge text-center">Rs. {{ product.price }}</div>
+            <div class="p-2 text-center">
+                <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
+                {% if product.is_deal %}
+                    <small class="text-info fw-bold">Deal</small>
+                {% else %}
+                    <small class="text-muted">Stock: {{ product.stock }}</small>
+                {% endif %}
             </div>
         </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center">No products found.</div>
+    </div>
+    {% endfor %}
+</div>
 
     </div>
 </div>
