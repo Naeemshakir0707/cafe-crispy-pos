@@ -175,7 +175,6 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = False
-# ==============================================================
 
 # ====================== CLOUDINARY ======================
 import cloudinary
