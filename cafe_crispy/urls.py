@@ -35,6 +35,7 @@ urlpatterns = [
     path('daily-closing/', views.daily_closing, name='daily_closing'),
     path('stock-adjustment/', views.stock_adjustment, name='stock_adjustment'),
     path('settings/', views.restaurant_settings, name='restaurant_settings'),
+    path('manage/staff/', views.manage_staff, name='manage_staff'),
 ]
 
 from django.conf import settings

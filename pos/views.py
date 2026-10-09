@@ -604,3 +604,60 @@ def restaurant_settings(request):
         'restaurant': restaurant,
     }
     return render(request, 'pos/restaurant_settings.html', context)
+
+@login_required(login_url='login')
+def manage_staff(request):
+    restaurant = get_user_restaurant(request.user)
+    if not restaurant:
+        return render(request, 'pos/no_restaurant.html')
+
+    from django.contrib.auth.models import User
+    from .models import UserProfile
+
+    # Get all staff of this restaurant
+    staff_list = UserProfile.objects.filter(restaurant=restaurant).select_related('user')
+
+    message = None
+    error = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+            is_manager = request.POST.get('is_manager') == 'on'
+
+            if not username or not password:
+                error = "Username and Password are required."
+            elif User.objects.filter(username=username).exists():
+                error = "This username is already taken. Please choose another."
+            else:
+                # Create user
+                user = User.objects.create_user(username=username, password=password)
+                # Link to restaurant
+                UserProfile.objects.create(
+                    user=user,
+                    restaurant=restaurant,
+                    is_manager=is_manager
+                )
+                message = f"Staff '{username}' created successfully."
+
+        elif action == 'delete':
+            profile_id = request.POST.get('profile_id')
+            profile = UserProfile.objects.filter(id=profile_id, restaurant=restaurant).first()
+            if profile and profile.user != request.user:  # Prevent deleting yourself
+                user = profile.user
+                profile.delete()
+                user.delete()
+                message = "Staff deleted successfully."
+            else:
+                error = "You cannot delete your own account."
+
+    context = {
+        'restaurant': restaurant,
+        'staff_list': staff_list,
+        'message': message,
+        'error': error,
+    }
+    return render(request, 'pos/manage_staff.html', context)
