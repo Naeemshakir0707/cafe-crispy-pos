@@ -216,7 +216,7 @@
             <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
                 {% for product in products %}
                 <div class="col product-item" data-category="{{ product.category.id }}">
-                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }})">
+                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', '{{ product.price }}')">
                         {% if product.image %}
                             <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
                         {% else %}
@@ -225,7 +225,7 @@
                             </div>
                         {% endif %}
                         <div class="price-badge text-center">Rs. {{ product.price }}</div>
-                        <div class="p-2 text-center" style="background-color: #e5e5e5fb;">
+                        <div class="p-2 text-center" style="background-color: #f4f5f7;">
                             <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
                             {% if product.is_deal %}
                                 <small class="text-info fw-bold">Deal</small>
