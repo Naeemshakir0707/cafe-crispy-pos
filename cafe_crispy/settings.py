@@ -181,7 +181,7 @@ SECURE_SSL_REDIRECT = False
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ====================== CLOUDINARY CONFIG ======================
+# ====================== CLOUDINARY ======================
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -193,8 +193,5 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-# Keep media settings (optional now)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-# ===============================================================
+# ========================================================
