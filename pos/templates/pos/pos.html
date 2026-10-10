@@ -122,6 +122,7 @@
         <a href="/" class="btn btn-sm btn-outline-secondary">Dashboard</a>
         <a href="/sales-history/" class="btn btn-sm btn-outline-secondary">Sales History</a>
         <a href="/manage/products/" class="btn btn-sm btn-outline-secondary">Products</a>
+        <a href="/manage/categories/" class="btn btn-sm btn-outline-secondary">Categories</a>
         <a href="/last-10-sales/" class="btn btn-sm btn-outline-secondary">Last 10 Sales</a>
         <a href="/settings/" class="btn btn-sm btn-outline-secondary">Settings</a>
     </div>
@@ -229,8 +230,6 @@
                             <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
                             {% if product.is_deal %}
                                 <small class="text-info fw-bold">Deal</small>
-                            {% else %}
-                                <small class="text-muted">Stock: {{ product.stock }}</small>
                             {% endif %}
                         </div>
                     </div>
