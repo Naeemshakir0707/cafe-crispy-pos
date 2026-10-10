@@ -100,3 +100,30 @@ class DealComponent(models.Model):
 
     def __str__(self):
         return f"{self.deal.name} → {self.quantity} × {self.product.name}"
+
+class Ingredient(models.Model):
+    UNIT_CHOICES = (
+        ('gram', 'Gram'),
+        ('kg', 'Kilogram'),
+        ('piece', 'Piece'),
+        ('liter', 'Liter'),
+        ('ml', 'Milliliter'),
+    )
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150)
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default='gram')
+    stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    low_stock_threshold = models.DecimalField(max_digits=10, decimal_places=2, default=100)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.stock} {self.unit})"
+
+
+class RecipeItem(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='recipe_items')
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)  # how much is used per 1 product
+
+    def __str__(self):
+        return f"{self.product.name} → {self.quantity} {self.ingredient.unit} {self.ingredient.name}"

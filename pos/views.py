@@ -112,18 +112,27 @@ def complete_sale(request):
                     total=Decimal(str(item['price'])) * item['qty']
                 )
 
-                # Reduce stock
+                # ===== Stock Reduction (Supports both simple stock + Recipe/Ingredients) =====
                 product = Product.objects.get(id=item['id'], restaurant=restaurant)
+                qty_sold = item['qty']
 
-                if product.is_deal:
-                    # This is a Deal → reduce stock of its components
-                    for component in product.components.all():
-                        component.product.stock = max(0, component.product.stock - (component.quantity * item['qty']))
-                        component.product.save()
+                # 1. If product has a Recipe → reduce ingredients
+                recipe_items = product.recipe_items.all()
+                if recipe_items.exists():
+                    for recipe in recipe_items:
+                        ingredient = recipe.ingredient
+                        used_qty = recipe.quantity * qty_sold
+                        ingredient.stock = max(0, ingredient.stock - used_qty)
+                        ingredient.save()
                 else:
-                    # Normal product
-                    product.stock = max(0, product.stock - item['qty'])
-                    product.save()
+                    # 2. Normal product or Deal (old logic)
+                    if product.is_deal:
+                        for component in product.components.all():
+                            component.product.stock = max(0, component.product.stock - (component.quantity * qty_sold))
+                            component.product.save()
+                    else:
+                        product.stock = max(0, product.stock - qty_sold)
+                        product.save()
 
             return JsonResponse({
                 'success': True,

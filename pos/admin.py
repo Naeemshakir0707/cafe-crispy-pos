@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Restaurant, UserProfile, Category, Product, Sale, SaleItem, Customer, DealComponent
+from .models import Restaurant, UserProfile, Category, Product, Sale, SaleItem, Customer, DealComponent, Ingredient, RecipeItem
 
 class DealComponentInline(admin.TabularInline):
     model = DealComponent
@@ -19,3 +19,5 @@ admin.site.register(Sale)
 admin.site.register(SaleItem)
 admin.site.register(Customer)
 admin.site.register(DealComponent)
+admin.site.register(Ingredient)
+admin.site.register(RecipeItem)
