@@ -87,59 +87,69 @@
     </div>
 
     <!-- Top Products & Low Stock tables remain the same as previous version -->
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Top Selling Products</h5>
-                </div>
-                <div class="card-body">
-                    {% if top_products %}
-                        <table class="table table-hover">
-                            <thead><tr><th>Product</th><th class="text-end">Qty</th></tr></thead>
-                            <tbody>
-                                {% for item in top_products %}
-                                <tr>
-                                    <td>{{ item.product__name }}</td>
-                                    <td class="text-end"><span class="badge bg-primary">{{ item.total_qty }}</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-muted text-center">No data</p>
-                    {% endif %}
-                </div>
+    <!-- Low Stock Section -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Low Stock Alerts</h5>
+                <span class="badge bg-danger">Attention</span>
             </div>
-        </div>
+        <div class="card-body">
 
-        <div class="col-lg-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-white d-flex justify-content-between">
-                    <h5 class="mb-0">Low Stock Products</h5>
-                    <span class="badge bg-danger">≤ 10</span>
-                </div>
-                <div class="card-body">
-                    {% if low_stock_products %}
-                        <table class="table table-hover">
-                            <thead><tr><th>Product</th><th class="text-end">Stock</th></tr></thead>
-                            <tbody>
-                                {% for product in low_stock_products %}
-                                <tr>
-                                    <td>{{ product.name }}</td>
-                                    <td class="text-end">
-                                        <span class="badge {% if product.stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                            {{ product.stock }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p class="text-muted text-center">All good</p>
-                    {% endif %}
-                </div>
+            <!-- Low Stock Ingredients -->
+            <h6 class="text-muted mb-2">Ingredients</h6>
+            {% if low_stock_ingredients %}
+                <table class="table table-sm table-hover mb-4">
+                    <thead>
+                        <tr>
+                            <th>Ingredient</th>
+                            <th class="text-end">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ing in low_stock_ingredients %}
+                        <tr>
+                            <td>{{ ing.name }}</td>
+                            <td class="text-end">
+                                <span class="badge bg-danger">
+                                    {{ ing.stock }} {{ ing.unit }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted small">All ingredients have sufficient stock.</p>
+            {% endif %}
+
+            <!-- Low Stock Products (only non-recipe products) -->
+            <h6 class="text-muted mb-2">Products (without recipe)</h6>
+            {% if low_stock_products %}
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-end">Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td class="text-end">
+                                <span class="badge {% if product.stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                    {{ product.stock }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted small mb-0">No low stock products.</p>
+            {% endif %}
+
             </div>
         </div>
     </div>
