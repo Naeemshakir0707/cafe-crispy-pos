@@ -307,7 +307,7 @@ def dashboard(request):
 
 
     # Also get low stock Ingredients
-    from .models import Ingredient
+    from django.db.models import Ingredient
     low_stock_ingredients = Ingredient.objects.filter(
         restaurant=restaurant,
         is_active=True,
