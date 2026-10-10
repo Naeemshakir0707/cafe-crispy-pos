@@ -10,56 +10,104 @@
             --primary: {{ restaurant.primary_color|default:'#0d6efd' }};
             --secondary: {{ restaurant.secondary_color|default:'#198754' }};
         }
-        body { background-color: #f4f6f9; }
-        .navbar { background-color: var(--primary) !important; }
-        .btn-primary { background-color: var(--primary); border-color: var(--primary); }
-        .btn-success { background-color: var(--secondary); border-color: var(--secondary); }
-        .text-primary { color: var(--primary) !important; }
-        .text-success { color: var(--secondary) !important; }
-        .card { border-radius: 12px; border: none; }
-        .stat-card:hover { transform: translateY(-3px); transition: 0.2s; }
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: var(--primary) !important;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        .btn-success {
+            background-color: var(--secondary);
+            border-color: var(--secondary);
+        }
+        .text-primary {
+            color: var(--primary) !important;
+        }
+        .text-success {
+            color: var(--secondary) !important;
+        }
+        .card {
+            border-radius: 12px;
+            border: none;
+        }
+        .stat-card {
+            transition: all 0.25s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        }
+        .filter-box {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
     </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav class="navbar navbar-dark">
     <div class="container-fluid px-4">
         <div class="d-flex align-items-center gap-3">
             {% if restaurant.logo %}
-                <img src="{{ restaurant.logo.url }}" alt="Logo" height="40" style="border-radius: 6px;">
+                <img src="{{ restaurant.logo.url }}" alt="Logo" height="38" style="border-radius: 6px;">
             {% endif %}
             <span class="navbar-brand mb-0 fw-bold">{{ restaurant.name }}</span>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             <a href="/pos/" class="btn btn-success btn-sm">Open POS</a>
             <a href="/daily-closing/" class="btn btn-outline-light btn-sm">Daily Closing</a>
             <a href="/sales-history/" class="btn btn-outline-light btn-sm">Sales History</a>
             <a href="/manage/products/" class="btn btn-outline-light btn-sm">Products</a>
-            <a href="/manage/categories/" class="btn btn-outline-light btn-sm">Manage Categories</a>
-            <a href="/manage/ingredients/" class="btn btn-outline-warning btn-sm">Ingredients</a>
-            <a href="/stock-adjustment/" class="btn btn-outline-light btn-sm">Stock Adjustment</a>
-            <a href="/settings/" class="btn btn-outline-light btn-sm">Settings</a>
+            <a href="/manage/categories/" class="btn btn-outline-light btn-sm">Categories</a>
+            <a href="/manage/ingredients/" class="btn btn-outline-light btn-sm">Ingredients</a>
+            <a href="/stock-adjustment/" class="btn btn-outline-light btn-sm">Stock</a>
             <a href="/manage/staff/" class="btn btn-outline-light btn-sm">Staff</a>
+            <a href="/settings/" class="btn btn-outline-light btn-sm">Settings</a>
             <a href="/logout/" class="btn btn-outline-danger btn-sm">Logout</a>
         </div>
     </div>
 </nav>
 
 <div class="container-fluid px-4 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+
+    <!-- Header + Date Filter -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-5">
             <h2 class="mb-0 fw-bold">Dashboard</h2>
             <p class="text-muted mb-0">{{ today|date:"l, d F Y" }}</p>
         </div>
+        <div class="col-md-7">
+            <div class="filter-box">
+                <form method="GET" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">From Date</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted mb-1">To Date</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <!-- Keep your existing stats cards and tables here (same as before) -->
-    <!-- For now the structure remains, colors will apply automatically -->
-
+    <!-- Stats Cards -->
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card stat-card shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <h6 class="text-muted mb-1">Selected Period Sales</h6>
                     <h2 class="text-success fw-bold mb-0">Rs. {{ total_sales }}</h2>
                     <small class="text-muted">{{ total_orders }} orders</small>
@@ -68,7 +116,7 @@
         </div>
         <div class="col-md-4">
             <div class="card stat-card shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <h6 class="text-muted mb-1">Today's Sales</h6>
                     <h2 class="text-primary fw-bold mb-0">Rs. {{ total_sales_today }}</h2>
                     <small class="text-muted">{{ total_orders_today }} orders</small>
@@ -77,109 +125,132 @@
         </div>
         <div class="col-md-4">
             <div class="card stat-card shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <h6 class="text-muted mb-1">Low Stock Items</h6>
-                    <h2 class="text-danger fw-bold mb-0">{{ low_stock_products.count }}</h2>
+                    <h2 class="text-danger fw-bold mb-0">
+                        {{ low_stock_ingredients.count|add:low_stock_products.count }}
+                    </h2>
                     <small class="text-muted">Need attention</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Top Products & Low Stock tables remain the same as previous version -->
+    <!-- Tables -->
     <div class="row g-4">
+        <!-- Top Selling Products -->
         <div class="col-lg-6">
             <div class="card shadow-sm h-100">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">Top Selling Products</h5>
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Top Selling Products</h5>
+                    <small class="text-muted">In selected period</small>
                 </div>
                 <div class="card-body">
                     {% if top_products %}
-                        <table class="table table-hover">
-                            <thead><tr><th>Product</th><th class="text-end">Qty</th></tr></thead>
-                            <tbody>
-                                {% for item in top_products %}
-                                <tr>
-                                    <td>{{ item.product__name }}</td>
-                                    <td class="text-end"><span class="badge bg-primary">{{ item.total_qty }}</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th class="text-end">Quantity Sold</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in top_products %}
+                                    <tr>
+                                        <td class="fw-medium">{{ item.product__name }}</td>
+                                        <td class="text-end">
+                                            <span class="badge bg-primary rounded-pill">{{ item.total_qty }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
-                        <p class="text-muted text-center">No data</p>
+                        <p class="text-muted text-center py-4 mb-0">No sales data in this period.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- Low Stock Section -->
-<div class="col-lg-6">
-    <div class="card shadow-sm h-100">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Low Stock Alerts</h5>
-            <span class="badge bg-danger">Attention</span>
-        </div>
-        <div class="card-body">
+        <!-- Low Stock Alerts -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <div>
+                        <h5 class="mb-0 fw-bold">Low Stock Alerts</h5>
+                        <small class="text-muted">Ingredients & Products</small>
+                    </div>
+                    <span class="badge bg-danger">Attention</span>
+                </div>
+                <div class="card-body">
 
-            <!-- Low Stock Ingredients -->
-            <h6 class="text-muted mb-2">Ingredients</h6>
-            {% if low_stock_ingredients %}
-                <table class="table table-sm table-hover mb-4">
-                    <thead>
-                        <tr>
-                            <th>Ingredient</th>
-                            <th class="text-end">Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ing in low_stock_ingredients %}
-                        <tr>
-                            <td>{{ ing.name }}</td>
-                            <td class="text-end">
-                                <span class="badge bg-danger">
-                                    {{ ing.stock }} {{ ing.unit }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-muted small">All ingredients have sufficient stock.</p>
-            {% endif %}
+                    <!-- Low Stock Ingredients -->
+                    <h6 class="text-muted mb-2">Ingredients</h6>
+                    {% if low_stock_ingredients %}
+                        <table class="table table-sm table-hover mb-4">
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th class="text-end">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ing in low_stock_ingredients %}
+                                <tr>
+                                    <td>{{ ing.name }}</td>
+                                    <td class="text-end">
+                                        <span class="badge bg-danger">
+                                            {{ ing.stock }} {{ ing.unit }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted small mb-4">All ingredients have sufficient stock.</p>
+                    {% endif %}
 
-            <!-- Low Stock Products (only non-recipe products) -->
-            <h6 class="text-muted mb-2">Products (without recipe)</h6>
-            {% if low_stock_products %}
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th class="text-end">Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in low_stock_products %}
-                        <tr>
-                            <td>{{ product.name }}</td>
-                            <td class="text-end">
-                                <span class="badge {% if product.stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                    {{ product.stock }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-muted small mb-0">No low stock products.</p>
-            {% endif %}
+                    <!-- Low Stock Products (only without recipe) -->
+                    <h6 class="text-muted mb-2">Products (without recipe)</h6>
+                    {% if low_stock_products %}
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td class="text-end">
+                                        <span class="badge {% if product.stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ product.stock }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted small mb-0">No low stock products.</p>
+                    {% endif %}
 
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="text-center mt-5">
+        <a href="/pos/" class="btn btn-success btn-lg px-5 rounded-pill">
+            Open POS Screen
+        </a>
     </div>
+
 </div>
 
 </body>
