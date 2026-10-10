@@ -36,6 +36,8 @@ urlpatterns = [
     path('stock-adjustment/', views.stock_adjustment, name='stock_adjustment'),
     path('settings/', views.restaurant_settings, name='restaurant_settings'),
     path('manage/staff/', views.manage_staff, name='manage_staff'),
+    path('manage/ingredients/', views.manage_ingredients, name='manage_ingredients'),
+    path('manage/recipe/<int:product_id>/', views.manage_recipe, name='manage_recipe'),
 ]
 
 from django.conf import settings

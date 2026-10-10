@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredients - {{ restaurant.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand">{{ restaurant.name }} - Ingredients Stock</span>
+        <div>
+            <a href="/" class="btn btn-outline-light btn-sm">Dashboard</a>
+            <a href="/manage/products/" class="btn btn-outline-light btn-sm">Products</a>
+            <a href="/pos/" class="btn btn-success btn-sm">POS</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 mb-5">
+
+    <!-- Add Ingredient -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Add New Ingredient</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="row g-3">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="col-md-3">
+                    <label class="form-label">Ingredient Name</label>
+                    <input type="text" name="name" class="form-control" required placeholder="e.g. Dough, Chicken, Cheese">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Unit</label>
+                    <select name="unit" class="form-select">
+                        <option value="gram">Gram</option>
+                        <option value="kg">Kilogram</option>
+                        <option value="piece">Piece</option>
+                        <option value="liter">Liter</option>
+                        <option value="ml">Milliliter</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Current Stock</label>
+                    <input type="number" name="stock" class="form-control" value="0" step="0.01">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Low Stock Alert</label>
+                    <input type="number" name="low_stock_threshold" class="form-control" value="100" step="0.01">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Add Ingredient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ingredients List -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">All Ingredients</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Unit</th>
+                        <th>Current Stock</th>
+                        <th>Low Stock Alert</th>
+                        <th width="160">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ing in ingredients %}
+                    <tr>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="edit">
+                            <input type="hidden" name="ingredient_id" value="{{ ing.id }}">
+                            <td><input type="text" name="name" value="{{ ing.name }}" class="form-control form-control-sm"></td>
+                            <td>
+                                <select name="unit" class="form-select form-select-sm">
+                                    <option value="gram" {% if ing.unit == 'gram' %}selected{% endif %}>Gram</option>
+                                    <option value="kg" {% if ing.unit == 'kg' %}selected{% endif %}>Kilogram</option>
+                                    <option value="piece" {% if ing.unit == 'piece' %}selected{% endif %}>Piece</option>
+                                    <option value="liter" {% if ing.unit == 'liter' %}selected{% endif %}>Liter</option>
+                                    <option value="ml" {% if ing.unit == 'ml' %}selected{% endif %}>Milliliter</option>
+                                </select>
+                            </td>
+                            <td><input type="number" name="stock" value="{{ ing.stock }}" class="form-control form-control-sm" step="0.01"></td>
+                            <td><input type="number" name="low_stock_threshold" value="{{ ing.low_stock_threshold }}" class="form-control form-control-sm" step="0.01"></td>
+                            <td>
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                        </form>
+                                <form method="POST" class="d-inline" onsubmit="return confirm('Delete this ingredient?')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="ingredient_id" value="{{ ing.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No ingredients yet. Add your first ingredient above.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

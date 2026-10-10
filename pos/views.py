@@ -670,3 +670,95 @@ def manage_staff(request):
         'error': error,
     }
     return render(request, 'pos/manage_staff.html', context)
+
+@login_required(login_url='login')
+def manage_ingredients(request):
+    restaurant = get_user_restaurant(request.user)
+    if not restaurant:
+        return render(request, 'pos/no_restaurant.html')
+
+    from .models import Ingredient
+    ingredients = Ingredient.objects.filter(restaurant=restaurant).order_by('name')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add':
+            name = request.POST.get('name', '').strip()
+            unit = request.POST.get('unit', 'gram')
+            stock = request.POST.get('stock', 0)
+            threshold = request.POST.get('low_stock_threshold', 100)
+
+            if name:
+                Ingredient.objects.create(
+                    restaurant=restaurant,
+                    name=name,
+                    unit=unit,
+                    stock=stock or 0,
+                    low_stock_threshold=threshold or 100
+                )
+
+        elif action == 'edit':
+            ing_id = request.POST.get('ingredient_id')
+            ingredient = Ingredient.objects.filter(id=ing_id, restaurant=restaurant).first()
+            if ingredient:
+                ingredient.name = request.POST.get('name', ingredient.name)
+                ingredient.unit = request.POST.get('unit', ingredient.unit)
+                ingredient.stock = request.POST.get('stock', ingredient.stock)
+                ingredient.low_stock_threshold = request.POST.get('low_stock_threshold', ingredient.low_stock_threshold)
+                ingredient.save()
+
+        elif action == 'delete':
+            ing_id = request.POST.get('ingredient_id')
+            Ingredient.objects.filter(id=ing_id, restaurant=restaurant).delete()
+
+        return redirect('manage_ingredients')
+
+    context = {
+        'restaurant': restaurant,
+        'ingredients': ingredients,
+    }
+    return render(request, 'pos/manage_ingredients.html', context)
+
+
+@login_required(login_url='login')
+def manage_recipe(request, product_id):
+    restaurant = get_user_restaurant(request.user)
+    if not restaurant:
+        return render(request, 'pos/no_restaurant.html')
+
+    from .models import Ingredient, RecipeItem, Product
+
+    product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
+    if not product:
+        return redirect('manage_products')
+
+    ingredients = Ingredient.objects.filter(restaurant=restaurant, is_active=True)
+    recipe_items = product.recipe_items.select_related('ingredient').all()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'add_recipe':
+            ingredient_id = request.POST.get('ingredient_id')
+            quantity = request.POST.get('quantity')
+            if ingredient_id and quantity:
+                RecipeItem.objects.create(
+                    product=product,
+                    ingredient_id=ingredient_id,
+                    quantity=quantity
+                )
+
+        elif action == 'remove_recipe':
+            recipe_id = request.POST.get('recipe_id')
+            RecipeItem.objects.filter(id=recipe_id, product=product).delete()
+
+        return redirect('manage_recipe', product_id=product.id)
+
+    context = {
+        'restaurant': restaurant,
+        'product': product,
+        'ingredients': ingredients,
+        'recipe_items': recipe_items,
+    }
+    return render(request, 'pos/manage_recipe.html', context)
