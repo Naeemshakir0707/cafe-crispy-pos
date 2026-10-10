@@ -293,10 +293,25 @@ def dashboard(request):
     )
 
     # Low Stock Products
+    # Low Stock Products (only products that do NOT have a recipe)
+    from django.db.models import Count
     low_stock_products = Product.objects.filter(
         restaurant=restaurant,
         is_active=True,
         stock__lte=10
+    ).annotate(
+        recipe_count=Count('recipe_items')
+    ).filter(
+        recipe_count=0   # Only products without recipe
+    ).order_by('stock')
+
+
+    # Also get low stock Ingredients
+    from .models import Ingredient
+    low_stock_ingredients = Ingredient.objects.filter(
+        restaurant=restaurant,
+        is_active=True,
+        stock__lte=models.F('low_stock_threshold')
     ).order_by('stock')
 
     context = {
@@ -310,6 +325,8 @@ def dashboard(request):
         'start_date': start_date,
         'end_date': end_date,
         'today': today,
+        'low_stock_products': low_stock_products,
+        'low_stock_ingredients': low_stock_ingredients,
     }
     return render(request, 'pos/dashboard.html', context)
 
