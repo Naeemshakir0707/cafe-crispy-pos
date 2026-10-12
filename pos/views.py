@@ -24,7 +24,7 @@ def pos_screen(request):
         return render(request, 'pos/no_restaurant.html')
 
     categories = Category.objects.filter(restaurant=restaurant, is_active=True)
-    products = Product.objects.filter(restaurant=restaurant, is_active=True).select_related('category')
+    products = Product.objects.filter(restaurant=restaurant, is_active=True)
 
     context = {
         'categories': categories,
@@ -415,8 +415,8 @@ def manage_products(request):
                 product.name = name
                 product.category_id = category_id
                 product.price = price
-                product.is_active = True
                 product.is_deal = is_deal
+                product.is_active = True
 
                 if is_deal:
                     product.stock = 0
