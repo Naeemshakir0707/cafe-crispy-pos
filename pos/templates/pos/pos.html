@@ -396,6 +396,7 @@
             `;
         });
 
+        
         cartBody.innerHTML = html;
         subtotalSpan.innerText = 'Rs. ' + subtotal.toFixed(2);
         totalSpan.innerText = 'Rs. ' + Math.max(0, subtotal - discount + deliveryCharge).toFixed(2);
