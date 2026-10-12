@@ -389,7 +389,12 @@ def manage_products(request):
             stock = request.POST.get('stock', 0)
             is_deal = request.POST.get('is_deal') == 'on'
             image = request.FILES.get('image')
-
+            print("=== ADD PRODUCT DEBUG ===")
+            print("Restaurant:", restaurant)
+            print("Name:", name)
+            print("Category:", category_id)
+            print("Price:", price)
+            print("Image:", image)
             if name and category_id and price:
                 try:
                     Product.objects.create(
@@ -402,8 +407,9 @@ def manage_products(request):
                         is_active=True,
                         image=image
                     )
+                    print("Product created successfully! ID:", product.id)
                 except Exception as e:
-                    print("Error creating product:", e)
+                    print("ERROR CREATING PRODUCT:", str(e))
 
         elif action == 'edit':
             product_id = request.POST.get('product_id')
