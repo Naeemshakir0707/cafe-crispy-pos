@@ -24,7 +24,7 @@ def pos_screen(request):
         return render(request, 'pos/no_restaurant.html')
 
     categories = Category.objects.filter(restaurant=restaurant, is_active=True)
-    products = Product.objects.filter(restaurant=restaurant, is_active=True)
+    products = Product.objects.filter(restaurant=restaurant, is_active=True).select_related('category')
 
     context = {
         'categories': categories,
@@ -382,25 +382,25 @@ def manage_products(request):
     if request.method == 'POST':
         action = request.POST.get('action')
 
-        if action == 'add':
-            name = request.POST.get('name')
-            category_id = request.POST.get('category')
-            price = request.POST.get('price')
-            stock = request.POST.get('stock', 0)
-            is_deal = True if request.POST.get('is_deal') == 'on' else False
-            image = request.FILES.get('image')
+            if action == 'add':
+                name = request.POST.get('name', '').strip()
+                category_id = request.POST.get('category')
+                price = request.POST.get('price')
+                stock = request.POST.get('stock', 0)
+                is_deal = True if request.POST.get('is_deal') == 'on' else False
+                image = request.FILES.get('image')
 
             if name and category_id and price:
                 Product.objects.create(
-                    restaurant=restaurant,
+                    restaurant=restaurant,          # ← Very important
                     name=name,
                     category_id=category_id,
                     price=price,
                     stock=0 if is_deal else (stock or 0),
                     is_deal=is_deal,
+                    is_active=True,                 # ← Make sure it is active
                     image=image
                 )
-
         elif action == 'edit':
             product_id = request.POST.get('product_id')
             name = request.POST.get('name')
@@ -415,6 +415,7 @@ def manage_products(request):
                 product.name = name
                 product.category_id = category_id
                 product.price = price
+                product.is_active = True
                 product.is_deal = is_deal
 
                 if is_deal:
