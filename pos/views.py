@@ -457,6 +457,7 @@ def manage_products(request):
         'all_products': all_products,
     }
     return render(request, 'pos/manage_products.html', context)
+    
 
 @login_required(login_url='login')
 def last_10_sales(request):
