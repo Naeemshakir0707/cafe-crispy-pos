@@ -377,53 +377,51 @@ def manage_products(request):
 
     products = Product.objects.filter(restaurant=restaurant).select_related('category').order_by('name')
     categories = Category.objects.filter(restaurant=restaurant, is_active=True)
-    all_products = Product.objects.filter(restaurant=restaurant, is_active=True)  # for deal components
+    all_products = Product.objects.filter(restaurant=restaurant, is_active=True)
 
     if request.method == 'POST':
         action = request.POST.get('action')
 
         if action == 'add':
-            name = request.POST.get('name')
+            name = request.POST.get('name', '').strip()
             category_id = request.POST.get('category')
             price = request.POST.get('price')
             stock = request.POST.get('stock', 0)
-            is_deal = True if request.POST.get('is_deal') == 'on' else False
+            is_deal = request.POST.get('is_deal') == 'on'
             image = request.FILES.get('image')
 
             if name and category_id and price:
-                Product.objects.create(
-                    restaurant=restaurant,
-                    name=name,
-                    category_id=category_id,
-                    price=price,
-                    stock=0 if is_deal else (stock or 0),
-                    is_deal=is_deal,
-                    image=image
-                )
+                try:
+                    Product.objects.create(
+                        restaurant=restaurant,
+                        name=name,
+                        category_id=category_id,
+                        price=price,
+                        stock=0 if is_deal else (stock or 0),
+                        is_deal=is_deal,
+                        is_active=True,
+                        image=image
+                    )
+                except Exception as e:
+                    print("Error creating product:", e)
 
         elif action == 'edit':
             product_id = request.POST.get('product_id')
-            name = request.POST.get('name')
-            category_id = request.POST.get('category')
-            price = request.POST.get('price')
-            stock = request.POST.get('stock', 0)
-            is_deal = True if request.POST.get('is_deal') == 'on' else False
-            image = request.FILES.get('image')
-
             product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
             if product:
-                product.name = name
-                product.category_id = category_id
-                product.price = price
-                product.is_deal = is_deal
+                product.name = request.POST.get('name', product.name)
+                product.category_id = request.POST.get('category', product.category_id)
+                product.price = request.POST.get('price', product.price)
+                product.is_deal = request.POST.get('is_deal') == 'on'
+                product.is_active = True
 
-                if is_deal:
+                if product.is_deal:
                     product.stock = 0
                 else:
-                    product.stock = stock or 0
+                    product.stock = request.POST.get('stock', product.stock)
 
-                if image:
-                    product.image = image
+                if request.FILES.get('image'):
+                    product.image = request.FILES.get('image')
 
                 product.save()
 
