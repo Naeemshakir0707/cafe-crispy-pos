@@ -104,9 +104,13 @@
         .suggestion-item:hover {
             background: #f0f0f0;
         }
+        .search-box {
+            max-width: 280px;
+        }
         @media (max-width: 991px) {
             .cart-section { order: -1; margin-bottom: 15px; }
             .products-section { order: 1; }
+            .search-box { max-width: 100%; }
         }
     </style>
 </head>
@@ -144,7 +148,7 @@
                     <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Clear</button>
                 </div>
 
-                <!-- Customer Details (only for Delivery) -->
+                <!-- Customer Details -->
                 <div class="customer-box" id="customer-box">
                     <h6 class="mb-2">Customer Details</h6>
                     <div class="mb-2 position-relative">
@@ -205,6 +209,15 @@
 
         <!-- ==================== PRODUCTS ==================== -->
         <div class="col-lg-7 products-section">
+            
+            <!-- Search + Categories -->
+            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                <div class="search-box flex-grow-1">
+                    <input type="text" id="product-search" class="form-control form-control-sm" 
+                           placeholder="🔍 Search products..." oninput="filterProducts()">
+                </div>
+            </div>
+
             <div class="mb-3 d-flex gap-2 overflow-auto pb-2" style="white-space: nowrap;">
                 <button class="btn btn-sm category-btn active" onclick="filterCategory('all', this)">All</button>
                 {% for category in categories %}
@@ -216,8 +229,10 @@
 
             <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
                 {% for product in products %}
-                <div class="col product-item" data-category="{{ product.category.id }}">
-                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', '{{ product.price }}')">
+                <div class="col product-item" 
+                     data-category="{{ product.category.id }}" 
+                     data-name="{{ product.name|lower }}">
+                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }})">
                         {% if product.image %}
                             <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
                         {% else %}
@@ -226,7 +241,7 @@
                             </div>
                         {% endif %}
                         <div class="price-badge text-center">Rs. {{ product.price }}</div>
-                        <div class="p-2 text-center" style="background-color: #f4f5f7;">
+                        <div class="p-2 text-center" style="background-color: #f1f3f5;">
                             <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
                             {% if product.is_deal %}
                                 <small class="text-info fw-bold">Deal</small>
@@ -248,6 +263,7 @@
 <script>
     let cart = [];
     let selectedOrderType = 'dine_in';
+    let currentCategory = 'all';
 
     function selectOrderType(button) {
         document.querySelectorAll('.order-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -275,9 +291,21 @@
         });
         button.classList.remove('btn-outline-dark');
         button.classList.add('active');
+        currentCategory = categoryId;
+        filterProducts();
+    }
+
+    function filterProducts() {
+        const search = document.getElementById('product-search').value.toLowerCase().trim();
 
         document.querySelectorAll('.product-item').forEach(product => {
-            product.style.display = (categoryId === 'all' || product.getAttribute('data-category') === categoryId) ? 'block' : 'none';
+            const name = product.getAttribute('data-name') || '';
+            const category = product.getAttribute('data-category');
+
+            const matchCategory = (currentCategory === 'all' || category === currentCategory);
+            const matchSearch = (search === '' || name.includes(search));
+
+            product.style.display = (matchCategory && matchSearch) ? 'block' : 'none';
         });
     }
 
