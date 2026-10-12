@@ -389,12 +389,7 @@ def manage_products(request):
             stock = request.POST.get('stock', 0)
             is_deal = request.POST.get('is_deal') == 'on'
             image = request.FILES.get('image')
-            print("=== ADD PRODUCT DEBUG ===")
-            print("Restaurant:", restaurant)
-            print("Name:", name)
-            print("Category:", category_id)
-            print("Price:", price)
-            print("Image:", image)
+
             if name and category_id and price:
                 try:
                     Product.objects.create(
@@ -407,29 +402,28 @@ def manage_products(request):
                         is_active=True,
                         image=image
                     )
-                    print("Product created successfully! ID:", product.id)
                 except Exception as e:
                     print("ERROR CREATING PRODUCT:", str(e))
 
         elif action == 'edit':
             product_id = request.POST.get('product_id')
-            product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
-            if product:
-                product.name = request.POST.get('name', product.name)
-                product.category_id = request.POST.get('category', product.category_id)
-                product.price = request.POST.get('price', product.price)
-                product.is_deal = request.POST.get('is_deal') == 'on'
-                product.is_active = True
+            prod = Product.objects.filter(id=product_id, restaurant=restaurant).first()
+            if prod:
+                prod.name = request.POST.get('name', prod.name)
+                prod.category_id = request.POST.get('category', prod.category_id)
+                prod.price = request.POST.get('price', prod.price)
+                prod.is_deal = request.POST.get('is_deal') == 'on'
+                prod.is_active = True
 
-                if product.is_deal:
-                    product.stock = 0
+                if prod.is_deal:
+                    prod.stock = 0
                 else:
-                    product.stock = request.POST.get('stock', product.stock)
+                    prod.stock = request.POST.get('stock', prod.stock)
 
                 if request.FILES.get('image'):
-                    product.image = request.FILES.get('image')
+                    prod.image = request.FILES.get('image')
 
-                product.save()
+                prod.save()
 
         elif action == 'delete':
             product_id = request.POST.get('product_id')
@@ -437,16 +431,16 @@ def manage_products(request):
 
         elif action == 'add_component':
             deal_id = request.POST.get('deal_id')
-            product_id = request.POST.get('component_product')
+            component_id = request.POST.get('component_product')
             quantity = request.POST.get('quantity', 1)
 
             deal = Product.objects.filter(id=deal_id, restaurant=restaurant, is_deal=True).first()
-            component_product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
+            component = Product.objects.filter(id=component_id, restaurant=restaurant).first()
 
-            if deal and component_product:
+            if deal and component:
                 DealComponent.objects.create(
                     deal=deal,
-                    product=component_product,
+                    product=component,
                     quantity=quantity
                 )
 
