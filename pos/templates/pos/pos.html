@@ -228,33 +228,34 @@
             </div>
 
             <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
-                {% for product in products %}
-                <div class="col product-item" 
-                     data-category="{{ product.category.id }}" 
-                     data-name="{{ product.name|lower }}">
-                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }})">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
-                        {% else %}
-                            <div class="product-img d-flex align-items-center justify-content-center bg-light">
-                                <span style="font-size: 32px;">🍽️</span>
-                            </div>
-                        {% endif %}
-                        <div class="price-badge text-center">Rs. {{ product.price }}</div>
-                        <div class="p-2 text-center" style="background-color: #f1f3f5;">
-                            <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
-                            {% if product.is_deal %}
-                                <small class="text-info fw-bold">Deal</small>
-                            {% endif %}
-                        </div>
-                    </div>
+    {% for product in products %}
+    <div class="col product-item" 
+         data-category="{{ product.category.id }}" 
+         data-name="{{ product.name|lower }}">
+        <div class="product-card h-100" 
+             onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }}, '{% if product.image %}{{ product.image.url }}{% endif %}')">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
+            {% else %}
+                <div class="product-img d-flex align-items-center justify-content-center bg-light">
+                    <span style="font-size: 32px;">🍽️</span>
                 </div>
-                {% empty %}
-                <div class="col-12">
-                    <div class="alert alert-warning text-center">No products found.</div>
-                </div>
-                {% endfor %}
+            {% endif %}
+            <div class="price-badge text-center">Rs. {{ product.price }}</div>
+            <div class="p-2 text-center" style="background-color: #f1f3f5;">
+                <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
+                {% if product.is_deal %}
+                    <small class="text-info fw-bold">Deal</small>
+                {% endif %}
             </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-warning text-center">No products found.</div>
+    </div>
+    {% endfor %}
+</div>
         </div>
 
     </div>
@@ -309,14 +310,20 @@
         });
     }
 
-    function addToCart(id, name, price) {
+    function addToCart(id, name, price, imageUrl = '') {
         let existing = cart.find(item => item.id === id);
         if (existing) {
             existing.qty += 1;
         } else {
-            cart.push({id: id, name: name, price: parseFloat(price), qty: 1});
-        }
-        updateCartDisplay();
+            cart.push({
+                id: id,
+                name: name,
+                price: parseFloat(price),
+                qty: 1,
+                image: imageUrl
+            });
+     }
+    updateCartDisplay();
     }
 
     function changeQty(id, delta) {
@@ -360,11 +367,21 @@
         cart.forEach(item => {
             const itemTotal = item.price * item.qty;
             subtotal += itemTotal;
+
+            const imageHtml = item.image 
+            ? `<img src="${item.image}" style="width:36px; height:36px; object-fit:cover; border-radius:6px; margin-right:8px;">`
+            : `<div style="width:36px; height:36px; background:#f1f3f5; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; margin-right:8px; font-size:16px;">🍽️</div>`;
+
             html += `
                 <tr>
                     <td>
-                        <div class="text-truncate" style="max-width:110px">${item.name}</div>
-                        <small class="text-muted">Rs. ${item.price}</small>
+                        <div class="d-flex align-items-center">
+                            ${imageHtml}
+                            <div>
+                                <div class="text-truncate" style="max-width:100px; font-size:13px;">${item.name}</div>
+                                <small class="text-muted">Rs. ${item.price}</small>
+                            </div>
+                        </div>
                     </td>
                     <td class="text-center">
                         <button class="btn btn-outline-secondary qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
@@ -372,7 +389,9 @@
                         <button class="btn btn-outline-secondary qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
                     </td>
                     <td class="text-end fw-bold">${itemTotal.toFixed(0)}</td>
-                    <td><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="changeQty('${item.id}', -999)">×</button></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="changeQty('${item.id}', -999)">×</button>
+                    </td>
                 </tr>
             `;
         });
