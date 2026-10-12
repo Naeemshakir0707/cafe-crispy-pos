@@ -389,7 +389,12 @@ def manage_products(request):
             stock = request.POST.get('stock', 0)
             is_deal = request.POST.get('is_deal') == 'on'
             image = request.FILES.get('image')
-
+            print("=== ADD PRODUCT DEBUG ===")
+            print("Restaurant:", restaurant)
+            print("Name:", name)
+            print("Category:", category_id)
+            print("Price:", price)
+            print("Image:", image)
             if name and category_id and price:
                 try:
                     Product.objects.create(
@@ -457,7 +462,7 @@ def manage_products(request):
         'all_products': all_products,
     }
     return render(request, 'pos/manage_products.html', context)
-    
+
 
 @login_required(login_url='login')
 def last_10_sales(request):
