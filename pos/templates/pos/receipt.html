@@ -117,6 +117,16 @@
         font-size: 14px;
     }
 
+    .total-amount {
+        font-size: 20px !important;
+        font-weight: 900 !important;
+    }
+
+    .customer-phone {
+        font-size: 20px !important;
+        font-weight: 900 !important;
+    }
+
     @media print {
         body {
             background: white;
@@ -200,7 +210,7 @@
             {% if sale.customer.mobile %}
             <tr>
                 <td>Mobile:</td>
-                <td class="right">{{ sale.customer.mobile }}</td>
+                <td class="right customer-phone">{{ sale.customer.mobile }}</td>
             </tr>
             {% endif %}
             {% if sale.customer.address %}
@@ -253,7 +263,7 @@
             <td class="right">Rs. {{ sale.delivery_charge }}</td>
         </tr>
         {% endif %}
-        <tr class="total-row">
+        <tr class="total-amount">
             <td>Total</td>
             <td class="right">Rs. {{ sale.total }}</td>
         </tr>
@@ -319,7 +329,7 @@
         {% if sale.customer.mobile %}
         <tr>
             <td>Mobile:</td>
-            <td class="right">{{ sale.customer.mobile }}</td>
+            <td class="right customer-phone">{{ sale.customer.mobile }}</td>
         </tr>
         {% endif %}
         {% if sale.customer.address %}
