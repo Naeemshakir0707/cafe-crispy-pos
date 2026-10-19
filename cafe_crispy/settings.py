@@ -169,6 +169,10 @@ MAILERS = {
 # ====================== RAILWAY CSRF FIX ======================
 CSRF_TRUSTED_ORIGINS = [
     "https://cafe-crispy-pos-production.up.railway.app",
+    'https://pos.crispypk.com',
+    'https://www.pos.crispypk.com',
+    'https://crispypk.com',
+    'https://www.crispypk.com',
 ]
 
 ALLOWED_HOSTS = [
@@ -176,6 +180,10 @@ ALLOWED_HOSTS = [
     ".up.railway.app",
     "localhost",
     "127.0.0.1",
+    'pos.crispypk.com',
+    'www.pos.crispypk.com',
+    'crispypk.com',
+    'www.crispypk.com',
 ]
 
 CSRF_COOKIE_SECURE = True
