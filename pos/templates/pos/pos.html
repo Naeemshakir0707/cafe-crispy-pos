@@ -300,16 +300,50 @@
     }
 
     function filterProducts() {
-        const search = document.getElementById('product-search').value.toLowerCase().trim();
+    const search = document.getElementById('product-search').value.toLowerCase().trim();
+    const products = Array.from(document.querySelectorAll('.product-item'));
 
-        document.querySelectorAll('.product-item').forEach(product => {
+    // Separate exact matches and partial matches
+    const exactMatches = [];
+    const partialMatches = [];
+
+        products.forEach(product => {
             const name = product.getAttribute('data-name') || '';
             const category = product.getAttribute('data-category');
 
             const matchCategory = (currentCategory === 'all' || category === currentCategory);
-            const matchSearch = (search === '' || name.includes(search));
 
-            product.style.display = (matchCategory && matchSearch) ? 'block' : 'none';
+            if (!matchCategory) {
+                product.style.display = 'none';
+                return;
+            }
+
+            if (search === '') {
+                product.style.display = 'block';
+                return;
+            }
+
+            if (name === search) {
+                // Exact match
+                exactMatches.push(product);
+            } else if (name.includes(search)) {
+                // Partial match
+                partialMatches.push(product);
+            } else {
+                product.style.display = 'none';
+            }
+        });
+
+        // Hide all first
+        products.forEach(p => p.style.display = 'none');
+
+        // Show exact matches first, then partial matches
+        const ordered = [...exactMatches, ...partialMatches];
+
+        ordered.forEach(product => {
+            product.style.display = 'block';
+            // Move to the top of the grid
+            product.parentNode.appendChild(product);
         });
     }
 
