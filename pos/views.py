@@ -16,7 +16,7 @@ def get_user_restaurant(user):
     except UserProfile.DoesNotExist:
         return None
 
-def is_manager(user):
+def user_is_manager(user):
     """Check if the logged-in user is a manager of their restaurant"""
     try:
         profile = user.userprofile
@@ -161,7 +161,7 @@ def sales_history(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     from datetime import datetime
@@ -251,7 +251,7 @@ def dashboard(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
         
     from django.utils import timezone
@@ -354,7 +354,7 @@ def manage_categories(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')
 
     categories = Category.objects.filter(restaurant=restaurant).order_by('name')
@@ -394,7 +394,7 @@ def manage_products(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
     from .models import DealComponent
 
@@ -552,7 +552,7 @@ def daily_closing(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
         
     from datetime import datetime
@@ -611,7 +611,7 @@ def stock_adjustment(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     products = Product.objects.filter(restaurant=restaurant, is_deal=False).order_by('name')
@@ -647,7 +647,7 @@ def restaurant_settings(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     if request.method == 'POST':
@@ -678,7 +678,7 @@ def manage_staff(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     from django.contrib.auth.models import User
@@ -739,7 +739,7 @@ def manage_ingredients(request):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     from .models import Ingredient
@@ -793,7 +793,7 @@ def manage_recipe(request, product_id):
         return render(request, 'pos/no_restaurant.html')
 
     # Only managers can access
-    if not is_manager(request.user):
+    if not user_is_manager(request.user):
         return redirect('pos')   # or show a permission denied page
 
     from .models import Ingredient, RecipeItem, Product
