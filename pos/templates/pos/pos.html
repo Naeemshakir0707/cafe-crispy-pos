@@ -123,12 +123,15 @@
             <img src="{{ restaurant.logo.url }}" alt="Logo" height="36" style="border-radius: 6px;">
         {% endif %}
         <h6 class="mb-0 fw-bold">{{ restaurant.name }}</h6>
+        {% if request.user.userprofile.is_manager %}
         <a href="/" class="btn btn-sm btn-outline-secondary">Dashboard</a>
         <a href="/sales-history/" class="btn btn-sm btn-outline-secondary">Sales History</a>
         <a href="/manage/products/" class="btn btn-sm btn-outline-secondary">Products</a>
         <a href="/manage/categories/" class="btn btn-sm btn-outline-secondary">Categories</a>
         <a href="/last-10-sales/" class="btn btn-sm btn-outline-secondary">Last 10 Sales</a>
         <a href="/settings/" class="btn btn-sm btn-outline-secondary">Settings</a>
+        {% endif %}
+
     </div>
     <a href="/logout/" class="btn btn-sm btn-outline-danger">Logout</a>
 </div>

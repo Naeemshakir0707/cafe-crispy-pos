@@ -16,6 +16,14 @@ def get_user_restaurant(user):
     except UserProfile.DoesNotExist:
         return None
 
+def is_manager(user):
+    """Check if the logged-in user is a manager of their restaurant"""
+    try:
+        profile = user.userprofile
+        return profile.is_manager
+    except:
+        return False
+
 @login_required(login_url='login')
 def pos_screen(request):
     restaurant = get_user_restaurant(request.user)
@@ -152,6 +160,10 @@ def sales_history(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+
     from datetime import datetime
 
     sales = Sale.objects.filter(restaurant=restaurant).order_by('-created_at')
@@ -238,6 +250,10 @@ def dashboard(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+        
     from django.utils import timezone
     from django.db.models import Sum
     from datetime import datetime
@@ -337,6 +353,10 @@ def manage_categories(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')
+
     categories = Category.objects.filter(restaurant=restaurant).order_by('name')
 
     if request.method == 'POST':
@@ -373,6 +393,9 @@ def manage_products(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
     from .models import DealComponent
 
     products = Product.objects.filter(restaurant=restaurant).select_related('category').order_by('name')
@@ -528,6 +551,10 @@ def daily_closing(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+        
     from datetime import datetime
     from django.db.models import Sum, Count
 
@@ -583,6 +610,10 @@ def stock_adjustment(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+
     products = Product.objects.filter(restaurant=restaurant, is_deal=False).order_by('name')
 
     if request.method == 'POST':
@@ -615,6 +646,10 @@ def restaurant_settings(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+
     if request.method == 'POST':
         restaurant.name = request.POST.get('name', restaurant.name).strip()
         restaurant.address = request.POST.get('address', '').strip()
@@ -641,6 +676,10 @@ def manage_staff(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
+
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
 
     from django.contrib.auth.models import User
     from .models import UserProfile
@@ -699,6 +738,10 @@ def manage_ingredients(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
+
     from .models import Ingredient
     ingredients = Ingredient.objects.filter(restaurant=restaurant).order_by('name')
 
@@ -748,6 +791,10 @@ def manage_recipe(request, product_id):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
+
+    # Only managers can access
+    if not is_manager(request.user):
+        return redirect('pos')   # or show a permission denied page
 
     from .models import Ingredient, RecipeItem, Product
 

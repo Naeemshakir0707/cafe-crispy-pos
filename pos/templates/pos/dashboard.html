@@ -63,6 +63,7 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="/pos/" class="btn btn-success btn-sm">Open POS</a>
+            {% if request.user.userprofile.is_manager %}
             <a href="/daily-closing/" class="btn btn-outline-light btn-sm">Daily Closing</a>
             <a href="/sales-history/" class="btn btn-outline-light btn-sm">Sales History</a>
             <a href="/manage/products/" class="btn btn-outline-light btn-sm">Products</a>
@@ -71,6 +72,7 @@
             <a href="/stock-adjustment/" class="btn btn-outline-light btn-sm">Stock</a>
             <a href="/manage/staff/" class="btn btn-outline-light btn-sm">Staff</a>
             <a href="/settings/" class="btn btn-outline-light btn-sm">Settings</a>
+             {% endif %}
             <a href="/logout/" class="btn btn-outline-danger btn-sm">Logout</a>
         </div>
     </div>
