@@ -128,6 +128,44 @@
         font-weight: 900 !important;
         font-weight: bold;
     }
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0;
+        font-size: 13px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+        border: 1px solid #000;
+        padding: 4px 6px;
+        text-align: left;
+    }
+
+    .receipt-table th {
+        background: #f0f0f0;
+        font-weight: 900;
+        text-align: center;
+    }
+
+    .receipt-table .right {
+        text-align: right;
+    }
+
+    .receipt-table .center {
+        text-align: center;
+    }
+
+    .total-row td {
+        font-size: 16px !important;
+        font-weight: 900 !important;
+        border: 2px solid #000 !important;
+    }
+
+    .section-line {
+        border-top: 2px solid #000;
+        margin: 8px 0;
+    }
 
     @media print {
         body {
@@ -227,19 +265,21 @@
 
     <div class="line"></div>
 
-    <table>
+    <table class="receipt-table">
         <thead>
-            <tr class="bold">
-                <td>Item</td>
-                <td class="right">Qty</td>
-                <td class="right">Amount</td>
+            <tr>
+                <th style="width: 45%;">Item</th>
+                <th class="center" style="width: 15%;">Qty</th>
+                <th class="right" style="width: 20%;">Price</th>
+                <th class="right" style="width: 20%;">Total</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in items %}
+            {% for item in sale.items.all %}
             <tr>
                 <td>{{ item.product.name }}</td>
-                <td class="right">{{ item.quantity }}</td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.price }}</td>
                 <td class="right">{{ item.total }}</td>
             </tr>
             {% endfor %}
@@ -296,25 +336,27 @@
     <div class="line"></div>
 
     <div class="small">
-        <table>
+        <table class="receipt-table">
             <tr>
-                <td>Invoice:</td>
-                <td class="right bold">{{ sale.invoice_no }}</td>
+                <td>Sub Total</td>
+                <td class="right">Rs. {{ sale.subtotal }}</td>
             </tr>
+            {% if sale.discount > 0 %}
             <tr>
-                <td>Date:</td>
-                <td class="right">{{ sale.created_at|date:"d M Y, h:i A" }}</td>
+                <td>Discount</td>
+                <td class="right">- Rs. {{ sale.discount }}</td>
             </tr>
+                {% endif %}
+                {% if sale.delivery_charge > 0 %}
             <tr>
-                <td>Type:</td>
-                <td class="right bold">{{ sale.get_order_type_display }}</td>
+                <td>Delivery Charge</td>
+                    <td class="right">Rs. {{ sale.delivery_charge }}</td>
             </tr>
-            {% if sale.created_by %}
-            <tr>
-                <td>Cashier:</td>
-                <td class="right">{{ sale.created_by.username }}</td>
+                {% endif %}
+            <tr class="total-row">
+                <td><strong>TOTAL</strong></td>
+                <td class="right"><strong>Rs. {{ sale.total }}</strong></td>
             </tr>
-            {% endif %}
         </table>
     </div>
 
