@@ -13,15 +13,18 @@
     body {
         font-family: 'Courier New', Courier, monospace;
         background: #f0f0f0;
-        padding: 20px;
+        padding: 4px 6px;          /* Reduced left & right margin */
         font-weight: bold;          /* All text bold by default */
+        margin: 0;
+        width: 100%;
+        max-width: 320px;
     }
 
     .receipt {
-        width: 320px;
+        width: 100%;
         margin: 0 auto 30px auto;
         background: white;
-        padding: 20px 16px;
+        padding: 4px 6px;
         box-shadow: 0 0 8px rgba(0,0,0,0.1);
         font-weight: bold;
     }
@@ -42,7 +45,7 @@
     }
 
     .line {
-        border-top: 1px dashed #000;
+        border-top: 1.5px solid #000;
         margin: 10px 0;
     }
 
@@ -92,7 +95,7 @@
         margin: 25px 0;
         font-size: 13px;
         color: #666;
-        border-top: 2px dashed #999;
+        border-top: 2px solid #999;
         padding-top: 8px;
     }
 
@@ -184,7 +187,7 @@
             display: none;
         }
         .cut-line {
-            border-top: 2px dashed #000;
+            border-top: 2px solid #000;
         }
     }
 </style>
@@ -286,7 +289,6 @@
         </tbody>
     </table>
 
-    <div class="line"></div>
 
     <table>
         <tr>
@@ -311,8 +313,6 @@
         </tr>
     </table>
 
-    <div class="double-line"></div>
-
     <div class="center small">
         <p class="bold">Thank you for your order!</p>
         <p>Please visit us again</p>
@@ -333,7 +333,6 @@
         <div class="restaurant-name">{{ restaurant.name }}</div>
     </div>
 
-    <div class="line"></div>
 
     <div class="small">
         <table class="receipt-table">
@@ -360,8 +359,7 @@
         </table>
     </div>
 
-    <div class="line"></div>
-{% if sale.customer %}
+    {% if sale.customer %}
 <div class="line"></div>
 <div class="small">
     <div class="bold">Customer Details</div>
