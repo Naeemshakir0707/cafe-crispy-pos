@@ -323,57 +323,49 @@
 <div class="cut-line no-print">✂ - - - - - - Cut Here - - - - - - ✂</div>
 
 <!-- ==================== KITCHEN COPY ==================== -->
-<div class="receipt">
-    <div class="restaurant-name center">KITCHEN COPY</div>
-
+<div class="receipt" style="page-break-before: always; margin-top: 20px;">
+    
     <div class="center">
         {% if restaurant.logo %}
-            <img src="{{ restaurant.logo.url }}" class="logo" alt="Logo">
+            <img src="{{ restaurant.logo.url }}" style="max-height: 55px; margin-bottom: 4px;">
         {% endif %}
         <div class="restaurant-name">{{ restaurant.name }}</div>
+        <div style="font-size: 14px; font-weight: 900;">KITCHEN COPY</div>
     </div>
 
+    <div class="line"></div>
 
-    <div class="small">
-        <table class="receipt-table">
-            <tr>
-                <td>Sub Total</td>
-                <td class="right">Rs. {{ sale.subtotal }}</td>
-            </tr>
-            {% if sale.discount > 0 %}
-            <tr>
-                <td>Discount</td>
-                <td class="right">- Rs. {{ sale.discount }}</td>
-            </tr>
-                {% endif %}
-                {% if sale.delivery_charge > 0 %}
-            <tr>
-                <td>Delivery Charge</td>
-                    <td class="right">Rs. {{ sale.delivery_charge }}</td>
-            </tr>
-                {% endif %}
-            <tr class="total-row">
-                <td><strong>TOTAL</strong></td>
-                <td class="right"><strong>Rs. {{ sale.total }}</strong></td>
-            </tr>
-        </table>
-    </div>
-
-    {% if sale.customer %}
-<div class="line"></div>
-<div class="small">
-    <div class="bold">Customer Details</div>
-    <table>
+    <table style="width: 100%; font-size: 12.5px;">
         <tr>
-            <td>Name:</td>
-            <td class="right">{{ sale.customer.name }}</td>
+            <td>Invoice:</td>
+            <td class="right bold">{{ sale.invoice_no }}</td>
         </tr>
+        <tr>
+            <td>Date:</td>
+            <td class="right">{{ sale.created_at|date:"d M Y, h:i A" }}</td>
+        </tr>
+        <tr>
+            <td>Order Type:</td>
+            <td class="right bold">{{ sale.get_order_type_display }}</td>
+        </tr>
+    </table>
+
+    <div class="line"></div>
+
+    <!-- Customer Details (also on Kitchen Copy) -->
+    {% if sale.customer %}
+    <div class="section-title">Customer Details</div>
+    <table style="width: 100%; font-size: 12.5px;">
         {% if sale.customer.mobile %}
         <tr>
             <td>Mobile:</td>
             <td class="right customer-phone">{{ sale.customer.mobile }}</td>
         </tr>
         {% endif %}
+        <tr>
+            <td>Name:</td>
+            <td class="right">{{ sale.customer.name }}</td>
+        </tr>
         {% if sale.customer.address %}
         <tr>
             <td>Address:</td>
@@ -381,22 +373,24 @@
         </tr>
         {% endif %}
     </table>
-</div>
-{% endif %}
-    <table>
+    <div class="line"></div>
+    {% endif %}
+
+    <!-- Items Table -->
+    <table class="receipt-table">
         <thead>
-            <tr class="bold">
-                <td>Item</td>
-                <td class="right">Qty</td>
-                <td class="right">Amount</td>
+            <tr>
+                <th style="width: 50%;">Item</th>
+                <th class="center" style="width: 15%;">Qty</th>
+                <th class="right" style="width: 35%;">Price</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in items %}
+            {% for item in sale.items.all %}
             <tr>
                 <td>{{ item.product.name }}</td>
-                <td class="right">{{ item.quantity }}</td>
-                <td class="right">{{ item.total }}</td>
+                <td class="center">{{ item.quantity }}</td>
+                <td class="right">{{ item.price }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -404,9 +398,10 @@
 
     <div class="line"></div>
 
-    <table>
+    <!-- Totals -->
+    <table class="receipt-table">
         <tr>
-            <td>Subtotal</td>
+            <td>Sub Total</td>
             <td class="right">Rs. {{ sale.subtotal }}</td>
         </tr>
         {% if sale.discount > 0 %}
@@ -422,13 +417,13 @@
         </tr>
         {% endif %}
         <tr class="total-row">
-            <td>Total</td>
-            <td class="right">Rs. {{ sale.total }}</td>
+            <td><strong>TOTAL</strong></td>
+            <td class="right"><strong>Rs. {{ sale.total }}</strong></td>
         </tr>
     </table>
 
-    <div class="double-line"></div>
-
+    <div class="line"></div>
+    
     <div class="center small bold">
         *** KITCHEN ORDER ***
     </div>
