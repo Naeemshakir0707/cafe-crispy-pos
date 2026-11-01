@@ -159,7 +159,7 @@
                         <div id="customer-suggestions" class="suggestions" style="display:none;"></div>
                     </div>
                     <div class="mb-2">
-                        <input type="text" id="customer-mobile" class="form-control form-control-sm" placeholder="Mobile Number">
+                        <input type="text" id="customer-mobile" class="form-control form-control-sm" placeholder="Mobile Number" oninput="validateMobile()">
                     </div>
                     <div>
                         <textarea id="customer-address" class="form-control form-control-sm" rows="2" placeholder="Delivery Address"></textarea>
@@ -192,11 +192,11 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span>Discount</span>
-                        <input type="number" id="discount-input" class="form-control form-control-sm text-end" style="width: 100px;" value="0" min="0" onchange="updateCartDisplay()">
+                        <input type="number" id="discount-input" class="form-control form-control-sm text-end" style="width: 100px;" value="0" min="0" oninput="updateCartDisplay()">
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-2" id="delivery-charge-row" style="display:none;">
                         <span>Delivery Charge</span>
-                        <input type="number" id="delivery-charge" class="form-control form-control-sm text-end" style="width: 100px;" value="0" min="0" onchange="updateCartDisplay()">
+                        <input type="number" id="delivery-charge" class="form-control form-control-sm text-end" style="width: 100px;" value="0" min="0" oninput="updateCartDisplay()">
                     </div>
                     <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2 mb-3">
                         <span>Total Payable</span>
