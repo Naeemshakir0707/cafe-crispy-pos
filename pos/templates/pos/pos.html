@@ -161,20 +161,29 @@
                 </div>
 
                 <!-- Customer Details -->
+                <!-- Customer Details (only for Delivery) -->
                 <div class="customer-box" id="customer-box">
                     <h6 class="mb-2">Customer Details</h6>
+
+                    <!-- Mobile Number first -->
                     <div class="mb-2 position-relative">
-                        <input type="text" id="customer-name" class="form-control form-control-sm" placeholder="Customer Name" autocomplete="off" oninput="searchCustomers()">
+                        <input type="text" id="customer-mobile" class="form-control form-control-sm" 
+                            placeholder="Mobile Number" autocomplete="off" oninput="searchCustomers()">
                         <div id="customer-suggestions" class="suggestions" style="display:none;"></div>
                     </div>
+
+                    <!-- Customer Name -->
                     <div class="mb-2">
-                        <input type="text" id="customer-mobile" class="form-control form-control-sm" placeholder="Mobile Number" oninput="validateMobile()">
+                        <input type="text" id="customer-name" class="form-control form-control-sm" 
+                         placeholder="Customer Name" autocomplete="off" oninput="searchCustomers()">
                     </div>
+
+                    <!-- Address -->
                     <div>
-                        <textarea id="customer-address" class="form-control form-control-sm" rows="2" placeholder="Delivery Address"></textarea>
+                        <textarea id="customer-address" class="form-control form-control-sm" rows="2" 
+                            placeholder="Delivery Address"></textarea>
                     </div>
                 </div>
-
                 <div class="card-body p-0" style="max-height: 260px; overflow-y: auto;">
                     <table class="table table-sm mb-0">
                         <thead>
@@ -452,29 +461,41 @@
     }
 
     function searchCustomers() {
-        const query = document.getElementById('customer-name').value.trim();
+        const mobile = document.getElementById('customer-mobile').value.trim();
+        const name = document.getElementById('customer-name').value.trim();
+        const query = mobile || name;   // Search by mobile first, then name
+
         const suggestionsDiv = document.getElementById('customer-suggestions');
 
-        if (query.length < 1) {
+        if (query.length < 2) {
             suggestionsDiv.style.display = 'none';
             return;
         }
-
+    
         fetch('/search-customers/?q=' + encodeURIComponent(query))
             .then(res => res.json())
             .then(data => {
-                if (data.customers.length === 0) {
+                if (!data.customers || data.customers.length === 0) {
                     suggestionsDiv.style.display = 'none';
                     return;
                 }
+
                 let html = '';
                 data.customers.forEach(c => {
-                    html += `<div class="suggestion-item" onclick="selectCustomer('${c.name}', '${c.mobile}', \`${c.address.replace(/`/g, '')}\`)">
-                                <strong>${c.name}</strong> ${c.mobile ? '- ' + c.mobile : ''}
-                             </div>`;
+                    html += `
+                        <div class="suggestion-item" 
+                            onclick="selectCustomer('${c.name}', '${c.mobile}', \`${(c.address || '').replace(/`/g, '')}\`)">
+                            <strong>${c.mobile || 'No Mobile'}</strong> 
+                            ${c.name ? ' - ' + c.name : ''}
+                        </div>`;
                 });
+
                 suggestionsDiv.innerHTML = html;
                 suggestionsDiv.style.display = 'block';
+            })
+            .catch(err => {
+                console.error(err);
+                suggestionsDiv.style.display = 'none';
             });
     }
 

@@ -525,25 +525,26 @@ def cancel_sale(request, sale_id):
 @login_required(login_url='login')
 def search_customers(request):
     restaurant = get_user_restaurant(request.user)
-    if not restaurant:
-        return JsonResponse({'customers': []})
+    q = request.GET.get('q', '').strip()
 
-    query = request.GET.get('q', '').strip()
-    customers = Customer.objects.filter(restaurant=restaurant)
+    customers = []
+    if restaurant and q:
+        from .models import Customer
+        customers = Customer.objects.filter(
+            restaurant=restaurant
+        ).filter(
+            models.Q(name__icontains=q) | models.Q(mobile__icontains=q)
+        )[:8]
 
-    if query:
-        customers = customers.filter(name__icontains=query) | customers.filter(mobile__icontains=query)
+        customers = [
+            {
+                'name': c.name,
+                'mobile': c.mobile or '',
+                'address': c.address or ''
+            } for c in customers
+        ]
 
-    customers = customers[:10]
-
-    data = [{
-        'id': c.id,
-        'name': c.name,
-        'mobile': c.mobile,
-        'address': c.address
-    } for c in customers]
-
-    return JsonResponse({'customers': data})
+    return JsonResponse({'customers': customers})
 
 @login_required(login_url='login')
 def daily_closing(request):
