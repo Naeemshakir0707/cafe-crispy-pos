@@ -294,38 +294,19 @@ def dashboard(request):
     total_sales_today = sum(sale.total for sale in today_sales)
     total_orders_today = today_sales.count()
 
-    from django.db.models import Sum, Count, F, Q
-
-# All products with sales quantity (top selling first)
-all_products_sales = (
-    SaleItem.objects.filter(
-        sale__restaurant=restaurant,
-        sale__status='completed',
-        sale__created_at__date__gte=start_date,
-        sale__created_at__date__lte=end_date
+    # Top Selling Products (only completed sales)
+    top_products = (
+        SaleItem.objects
+        .filter(
+            sale__restaurant=restaurant,
+            sale__status='completed',
+            sale__created_at__date__gte=start_date,
+            sale__created_at__date__lte=end_date
+        )
+        .values('product__name')
+        .annotate(total_qty=Sum('quantity'))
+        .order_by('-total_qty')[:5]
     )
-    .values('product__id', 'product__name', 'product__price')
-    .annotate(total_qty=Sum('quantity'))
-    .order_by('-total_qty')
-)
-
-# Also get products that have zero sales in this period
-sold_product_ids = [item['product__id'] for item in all_products_sales]
-
-zero_sales_products = Product.objects.filter(
-    restaurant=restaurant,
-    is_active=True
-).exclude(id__in=sold_product_ids).values('id', 'name', 'price')
-
-# Combine: top selling first, then products with 0 sales
-top_products = list(all_products_sales)
-for p in zero_sales_products:
-    top_products.append({
-        'product__id': p['id'],
-        'product__name': p['name'],
-        'product__price': p['price'],
-        'total_qty': 0
-    })
 
     # Low Stock Products
     # Low Stock Products (only products that do NOT have a recipe)
