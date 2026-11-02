@@ -461,42 +461,43 @@
     }
 
     function searchCustomers() {
-        const mobile = document.getElementById('customer-mobile').value.trim();
-        const name = document.getElementById('customer-name').value.trim();
-        const query = mobile || name;   // Search by mobile first, then name
+    const mobile = document.getElementById('customer-mobile').value.trim();
+    const name = document.getElementById('customer-name').value.trim();
+    const query = mobile.length >= 2 ? mobile : name;
 
-        const suggestionsDiv = document.getElementById('customer-suggestions');
+    const suggestionsDiv = document.getElementById('customer-suggestions');
 
-        if (query.length < 2) {
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
-    
-        fetch('/search-customers/?q=' + encodeURIComponent(query))
-            .then(res => res.json())
-            .then(data => {
-                if (!data.customers || data.customers.length === 0) {
-                    suggestionsDiv.style.display = 'none';
-                    return;
-                }
+    if (query.length < 2) {
+        suggestionsDiv.style.display = 'none';
+        return;
+    }
 
-                let html = '';
-                data.customers.forEach(c => {
-                    html += `
-                        <div class="suggestion-item" 
-                            onclick="selectCustomer('${c.name}', '${c.mobile}', \`${(c.address || '').replace(/`/g, '')}\`)">
-                            <strong>${c.mobile || 'No Mobile'}</strong> 
-                            ${c.name ? ' - ' + c.name : ''}
-                        </div>`;
-                });
-
-                suggestionsDiv.innerHTML = html;
-                suggestionsDiv.style.display = 'block';
-            })
-            .catch(err => {
-                console.error(err);
+    fetch('/search-customers/?q=' + encodeURIComponent(query))
+        .then(response => response.json())
+        .then(data => {
+            if (!data.customers || data.customers.length === 0) {
                 suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            data.customers.forEach(c => {
+                const safeAddress = (c.address || '').replace(/`/g, '').replace(/'/g, "\\'");
+                html += `
+                    <div class="suggestion-item" 
+                         onclick="selectCustomer('${c.name.replace(/'/g, "\\'")}', '${c.mobile}', \`${safeAddress}\`)">
+                        <strong>${c.mobile || '—'}</strong>
+                        ${c.name ? ' • ' + c.name : ''}
+                    </div>`;
             });
+
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Search error:', err);
+            suggestionsDiv.style.display = 'none';
+        });
     }
 
     function selectCustomer(name, mobile, address) {

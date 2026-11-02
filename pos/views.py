@@ -522,26 +522,30 @@ def cancel_sale(request, sale_id):
 
     return redirect(request.META.get('HTTP_REFERER', 'sales_history'))
 
+from django.db.models import Q
+from django.http import JsonResponse
+
 @login_required(login_url='login')
 def search_customers(request):
     restaurant = get_user_restaurant(request.user)
     q = request.GET.get('q', '').strip()
 
     customers = []
-    if restaurant and q:
+    if restaurant and len(q) >= 2:
         from .models import Customer
-        customers = Customer.objects.filter(
+        results = Customer.objects.filter(
             restaurant=restaurant
         ).filter(
-            models.Q(name__icontains=q) | models.Q(mobile__icontains=q)
-        )[:8]
+            Q(name__icontains=q) | Q(mobile__icontains=q)
+        ).order_by('-id')[:10]
 
         customers = [
             {
-                'name': c.name,
+                'name': c.name or '',
                 'mobile': c.mobile or '',
                 'address': c.address or ''
-            } for c in customers
+            }
+            for c in results
         ]
 
     return JsonResponse({'customers': customers})
