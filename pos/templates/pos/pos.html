@@ -320,70 +320,67 @@
         }
         updateCartDisplay();
     }
-
-    let currentCategory = 'all';
-
-function filterCategory(categoryId, button) {
-    // Update active button style
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active', 'btn-primary');
-        btn.classList.add('btn-outline-dark');
-    });
-    button.classList.remove('btn-outline-dark');
-    button.classList.add('active', 'btn-primary');
-
-    currentCategory = categoryId;
-
-    // Clear search when clicking All
-    if (categoryId === 'all') {
-        document.getElementById('product-search').value = '';
+    
+    function filterCategory(categoryId, button) {
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.classList.add('btn-outline-dark');
+        });
+        button.classList.remove('btn-outline-dark');
+        button.classList.add('active');
+        currentCategory = categoryId;
+        filterProducts();
     }
 
-    filterProducts();
-}
+    function filterProducts() {
+        const search = document.getElementById('product-search').value.toLowerCase().trim();
+        const products = Array.from(document.querySelectorAll('.product-item'));
+        const grid = document.getElementById('products-grid');
 
-function filterProducts() {
-    const search = document.getElementById('product-search').value.toLowerCase().trim();
-    const products = Array.from(document.querySelectorAll('.product-item'));
-    const grid = document.getElementById('products-grid');
-
-    // Hide all first
-    products.forEach(p => p.style.display = 'none');
-
-    if (search === '') {
-        // No search → show products of current category
+        // Reset all products first
         products.forEach(product => {
+        product.style.display = 'none';
+        });
+
+        if (search === '') {
+            // No search → show all products of current category
+            products.forEach(product => {
+                const category = product.getAttribute('data-category');
+                if (currentCategory === 'all' || category === currentCategory) {
+                    product.style.display = 'block';
+                }
+            });
+            return;
+        }
+
+        // Separate exact and partial matches
+        const exactMatches = [];
+        const partialMatches = [];
+
+        products.forEach(product => {
+            const name = product.getAttribute('data-name') || '';
             const category = product.getAttribute('data-category');
-            if (currentCategory === 'all' || category === currentCategory) {
-                product.style.display = 'block';
+
+            // Category filter
+            if (currentCategory !== 'all' && category !== currentCategory) {
+                return;
+            }
+
+            if (name === search) {
+                exactMatches.push(product);
+            } else if (name.includes(search)) {
+                partialMatches.push(product);
             }
         });
-        return;
+
+        // Show exact matches first, then partial matches
+        const ordered = [...exactMatches, ...partialMatches];
+
+        ordered.forEach(product => {
+            product.style.display = 'block';
+            grid.appendChild(product); // Move to end (so order is maintained)
+        });
     }
-
-    // Search is active → exact match first
-    const exactMatches = [];
-    const partialMatches = [];
-
-    products.forEach(product => {
-        const name = product.getAttribute('data-name') || '';
-        const category = product.getAttribute('data-category');
-
-        if (currentCategory !== 'all' && category !== currentCategory) return;
-
-        if (name === search) {
-            exactMatches.push(product);
-        } else if (name.includes(search)) {
-            partialMatches.push(product);
-        }
-    });
-
-    const ordered = [...exactMatches, ...partialMatches];
-    ordered.forEach(product => {
-        product.style.display = 'block';
-        grid.appendChild(product);
-    });
-}
 
     function addToCart(id, name, price, imageUrl = '') {
         let existing = cart.find(item => item.id === id);
