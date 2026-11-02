@@ -151,13 +151,25 @@
         <!-- ==================== CART ==================== -->
         <div class="col-lg-5 cart-section">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary order-type-btn active" data-type="dine_in" onclick="selectOrderType(this)">Dine In</button>
-                        <button class="btn btn-outline-success order-type-btn" data-type="take_away" onclick="selectOrderType(this)">Take Away</button>
-                        <button class="btn btn-outline-warning order-type-btn" data-type="delivery" onclick="selectOrderType(this)">Delivery</button>
+                <div class="card-header bg-white py-3">
+                    <!-- Separated Order Type Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary order-type-btn active flex-fill" 
+                            data-type="dine_in" onclick="selectOrderType(this)">
+                        Dine In
+                        </button>
+                        <button class="btn btn-outline-success order-type-btn flex-fill" 
+                            data-type="take_away" onclick="selectOrderType(this)">
+                        Take Away
+                        </button>
+                        <button class="btn btn-outline-warning order-type-btn flex-fill" 
+                            data-type="delivery" onclick="selectOrderType(this)">
+                        Delivery
+                        </button>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Clear</button>
+                            <div class="text-end mt-2">
+                                <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Clear</button>
+                            </div>
                 </div>
 
                 <!-- Customer Details -->
@@ -233,20 +245,21 @@
         <!-- ==================== PRODUCTS ==================== -->
         <div class="col-lg-7 products-section">
             
-            <!-- Search + Categories -->
-            <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-                <div class="search-box flex-grow-1">
-                    <input type="text" id="product-search" class="form-control form-control-sm" 
-                           placeholder="🔍 Search products..." oninput="filterProducts()">
-                </div>
+            <!-- Full Width Search -->
+            <div class="mb-3">
+                <input type="text" id="product-search" class="form-control" 
+                    placeholder="🔍 Search products by name..." 
+                    oninput="filterProducts()">
             </div>
 
+            <!-- Categories -->
             <div class="mb-3 d-flex gap-2 overflow-auto pb-2" style="white-space: nowrap;">
                 <button class="btn btn-sm category-btn active" onclick="filterCategory('all', this)">All</button>
                 {% for category in categories %}
-                    <button class="btn btn-sm btn-outline-dark category-btn" onclick="filterCategory('{{ category.id }}', this)">
-                        {{ category.name }}
-                    </button>
+                <button class="btn btn-sm btn-outline-dark category-btn" 
+                        onclick="filterCategory('{{ category.id }}', this)">
+                {{ category.name }}
+                </button>
                 {% endfor %}
             </div>
 
@@ -308,66 +321,69 @@
         updateCartDisplay();
     }
 
-    function filterCategory(categoryId, button) {
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.classList.add('btn-outline-dark');
-        });
-        button.classList.remove('btn-outline-dark');
-        button.classList.add('active');
-        currentCategory = categoryId;
-        filterProducts();
+    let currentCategory = 'all';
+
+function filterCategory(categoryId, button) {
+    // Update active button style
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active', 'btn-primary');
+        btn.classList.add('btn-outline-dark');
+    });
+    button.classList.remove('btn-outline-dark');
+    button.classList.add('active', 'btn-primary');
+
+    currentCategory = categoryId;
+
+    // Clear search when clicking All
+    if (categoryId === 'all') {
+        document.getElementById('product-search').value = '';
     }
 
-    function filterProducts() {
-        const search = document.getElementById('product-search').value.toLowerCase().trim();
-        const products = Array.from(document.querySelectorAll('.product-item'));
-        const grid = document.getElementById('products-grid');
+    filterProducts();
+}
 
-        // Reset all products first
+function filterProducts() {
+    const search = document.getElementById('product-search').value.toLowerCase().trim();
+    const products = Array.from(document.querySelectorAll('.product-item'));
+    const grid = document.getElementById('products-grid');
+
+    // Hide all first
+    products.forEach(p => p.style.display = 'none');
+
+    if (search === '') {
+        // No search → show products of current category
         products.forEach(product => {
-        product.style.display = 'none';
-        });
-
-        if (search === '') {
-            // No search → show all products of current category
-            products.forEach(product => {
-                const category = product.getAttribute('data-category');
-                if (currentCategory === 'all' || category === currentCategory) {
-                    product.style.display = 'block';
-                }
-            });
-            return;
-        }
-
-        // Separate exact and partial matches
-        const exactMatches = [];
-        const partialMatches = [];
-
-        products.forEach(product => {
-            const name = product.getAttribute('data-name') || '';
             const category = product.getAttribute('data-category');
-
-            // Category filter
-            if (currentCategory !== 'all' && category !== currentCategory) {
-                return;
-            }
-
-            if (name === search) {
-                exactMatches.push(product);
-            } else if (name.includes(search)) {
-                partialMatches.push(product);
+            if (currentCategory === 'all' || category === currentCategory) {
+                product.style.display = 'block';
             }
         });
-
-        // Show exact matches first, then partial matches
-        const ordered = [...exactMatches, ...partialMatches];
-
-        ordered.forEach(product => {
-            product.style.display = 'block';
-            grid.appendChild(product); // Move to end (so order is maintained)
-        });
+        return;
     }
+
+    // Search is active → exact match first
+    const exactMatches = [];
+    const partialMatches = [];
+
+    products.forEach(product => {
+        const name = product.getAttribute('data-name') || '';
+        const category = product.getAttribute('data-category');
+
+        if (currentCategory !== 'all' && category !== currentCategory) return;
+
+        if (name === search) {
+            exactMatches.push(product);
+        } else if (name.includes(search)) {
+            partialMatches.push(product);
+        }
+    });
+
+    const ordered = [...exactMatches, ...partialMatches];
+    ordered.forEach(product => {
+        product.style.display = 'block';
+        grid.appendChild(product);
+    });
+}
 
     function addToCart(id, name, price, imageUrl = '') {
         let existing = cart.find(item => item.id === id);
