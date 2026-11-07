@@ -8,9 +8,9 @@ from django.db.models import Sum, Count, F, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from datetime import datetime
+import pytz
 from decimal import Decimal
 import json
-
 from .models import (
     Restaurant, UserProfile, Category, Product, Sale, SaleItem,
     Customer, Ingredient, RecipeItem, DealComponent
@@ -71,10 +71,12 @@ def complete_sale(request):
                 from django.utils.dateparse import parse_datetime
                 parsed = parse_datetime(client_time_str)
                 if parsed:
+                    # Convert to Pakistan timezone
+                    pakistan_tz = pytz.timezone('Asia/Karachi')
                     if timezone.is_naive(parsed):
-                        client_time = timezone.make_aware(parsed)
+                        client_time = pakistan_tz.localize(parsed)
                     else:
-                        client_time = parsed
+                        client_time = parsed.astimezone(pakistan_tz)
             except Exception as e:
                 print("Time parse error:", e)
                 client_time = timezone.now()
