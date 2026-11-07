@@ -63,10 +63,6 @@
             color: white !important;
             border-color: var(--primary) !important;
         }
-        .order-type-btn.active {
-            font-weight: bold;
-            box-shadow: 0 0 0 2px #000;
-        }
         .btn-success {
             background-color: var(--secondary) !important;
             border-color: var(--secondary) !important;
@@ -104,10 +100,6 @@
         .suggestion-item:hover {
             background: #f0f0f0;
         }
-        .search-box {
-            max-width: 280px;
-        }
-        /* Hide number input arrows */
         .no-spinner::-webkit-outer-spin-button,
         .no-spinner::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -119,7 +111,6 @@
         @media (max-width: 991px) {
             .cart-section { order: -1; margin-bottom: 15px; }
             .products-section { order: 1; }
-            .search-box { max-width: 100%; }
         }
     </style>
 </head>
@@ -133,14 +124,13 @@
         {% endif %}
         <h6 class="mb-0 fw-bold">{{ restaurant.name }}</h6>
         {% if request.user.userprofile.is_manager %}
-        <a href="/" class="btn btn-sm btn-outline-secondary">Dashboard</a>
-        <a href="/sales-history/" class="btn btn-sm btn-outline-secondary">Sales History</a>
-        <a href="/manage/products/" class="btn btn-sm btn-outline-secondary">Products</a>
-        <a href="/manage/categories/" class="btn btn-sm btn-outline-secondary">Categories</a>
-        <a href="/last-10-sales/" class="btn btn-sm btn-outline-secondary">Last 10 Sales</a>
-        <a href="/settings/" class="btn btn-sm btn-outline-secondary">Settings</a>
+            <a href="/" class="btn btn-sm btn-outline-secondary">Dashboard</a>
+            <a href="/sales-history/" class="btn btn-sm btn-outline-secondary">Sales History</a>
+            <a href="/manage/products/" class="btn btn-sm btn-outline-secondary">Products</a>
+            <a href="/manage/categories/" class="btn btn-sm btn-outline-secondary">Categories</a>
+            <a href="/last-10-sales/" class="btn btn-sm btn-outline-secondary">Last 10 Sales</a>
+            <a href="/settings/" class="btn btn-sm btn-outline-secondary">Settings</a>
         {% endif %}
-
     </div>
     <a href="/logout/" class="btn btn-sm btn-outline-danger">Logout</a>
 </div>
@@ -148,54 +138,35 @@
 <div class="container-fluid p-2 p-md-3">
     <div class="row g-3">
 
-        <!-- ==================== CART ==================== -->
+        <!-- CART -->
         <div class="col-lg-5 cart-section">
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3">
-                    <!-- Separated Order Type Buttons -->
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-primary order-type-btn active flex-fill" 
-                            data-type="dine_in" onclick="selectOrderType(this)">
-                        Dine In
-                        </button>
-                        <button class="btn btn-outline-success order-type-btn flex-fill" 
-                            data-type="take_away" onclick="selectOrderType(this)">
-                        Take Away
-                        </button>
-                        <button class="btn btn-outline-warning order-type-btn flex-fill" 
-                            data-type="delivery" onclick="selectOrderType(this)">
-                        Delivery
-                        </button>
+                        <button class="btn btn-primary order-type-btn active flex-fill" data-type="dine_in" onclick="selectOrderType(this)">Dine In</button>
+                        <button class="btn btn-outline-success order-type-btn flex-fill" data-type="take_away" onclick="selectOrderType(this)">Take Away</button>
+                        <button class="btn btn-outline-warning order-type-btn flex-fill" data-type="delivery" onclick="selectOrderType(this)">Delivery</button>
                     </div>
-                            <div class="text-end mt-2">
-                                <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Clear</button>
-                            </div>
+                    <div class="text-end mt-2">
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">Clear</button>
+                    </div>
                 </div>
 
                 <!-- Customer Details -->
-                <!-- Customer Details (only for Delivery) -->
                 <div class="customer-box" id="customer-box">
                     <h6 class="mb-2">Customer Details</h6>
-
-                    <!-- Mobile Number first -->
                     <div class="mb-2 position-relative">
-                        <input type="text" id="customer-mobile" class="form-control form-control-sm" 
-                            placeholder="Mobile Number" autocomplete="off" oninput="searchCustomers()">
+                        <input type="text" id="customer-mobile" class="form-control form-control-sm" placeholder="Mobile Number" autocomplete="off" oninput="searchCustomers()">
                         <div id="customer-suggestions" class="suggestions" style="display:none;"></div>
                     </div>
-
-                    <!-- Customer Name -->
                     <div class="mb-2">
-                        <input type="text" id="customer-name" class="form-control form-control-sm" 
-                         placeholder="Customer Name" autocomplete="off" oninput="searchCustomers()">
+                        <input type="text" id="customer-name" class="form-control form-control-sm" placeholder="Customer Name" autocomplete="off" oninput="searchCustomers()">
                     </div>
-
-                    <!-- Address -->
                     <div>
-                        <textarea id="customer-address" class="form-control form-control-sm" rows="2" 
-                            placeholder="Delivery Address"></textarea>
+                        <textarea id="customer-address" class="form-control form-control-sm" rows="2" placeholder="Delivery Address"></textarea>
                     </div>
                 </div>
+
                 <div class="card-body p-0" style="max-height: 260px; overflow-y: auto;">
                     <table class="table table-sm mb-0">
                         <thead>
@@ -207,14 +178,11 @@
                             </tr>
                         </thead>
                         <tbody id="cart-items">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No items added yet</td>
-                            </tr>
+                            <tr><td colspan="4" class="text-center text-muted py-4">No items added yet</td></tr>
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Totals -->
                 <div class="p-3 bg-light border-top">
                     <div class="d-flex justify-content-between mb-1">
                         <span>Sub Total</span>
@@ -222,78 +190,61 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span>Discount</span>
-                        <input type="number" id="discount-input" class="form-control form-control-sm text-end no-spinner" 
-                            style="width: 100px;" value="" placeholder="0" min="0" oninput="updateCartDisplay()">
+                        <input type="number" id="discount-input" class="form-control form-control-sm text-end no-spinner" style="width: 100px;" value="" placeholder="0" min="0" oninput="updateCartDisplay()">
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-2" id="delivery-charge-row" style="display:none;">
                         <span>Delivery Charge</span>
-                        <input type="number" id="delivery-charge" class="form-control form-control-sm text-end no-spinner" 
-                            style="width: 100px;" value="" placeholder="0" min="0" oninput="updateCartDisplay()">
+                        <input type="number" id="delivery-charge" class="form-control form-control-sm text-end no-spinner" style="width: 100px;" value="" placeholder="0" min="0" oninput="updateCartDisplay()">
                     </div>
                     <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2 mb-3">
                         <span>Total Payable</span>
                         <span id="cart-total" class="text-success">Rs. 0.00</span>
                     </div>
-
-                    <button class="btn btn-success w-100 btn-lg" onclick="completeSale()">
-                        Complete Sale
-                    </button>
+                    <button class="btn btn-success w-100 btn-lg" onclick="completeSale()">Complete Sale</button>
                 </div>
             </div>
         </div>
 
-        <!-- ==================== PRODUCTS ==================== -->
+        <!-- PRODUCTS -->
         <div class="col-lg-7 products-section">
-            
-            <!-- Full Width Search -->
             <div class="mb-3">
-                <input type="text" id="product-search" class="form-control" 
-                    placeholder="🔍 Search products by name..." 
-                    oninput="filterProducts()">
+                <input type="text" id="product-search" class="form-control" placeholder="🔍 Search products by name..." oninput="filterProducts()">
             </div>
 
-            <!-- Categories -->
             <div class="mb-3 d-flex gap-2 overflow-auto pb-2" style="white-space: nowrap;">
                 <button class="btn btn-sm category-btn active" onclick="filterCategory('all', this)">All</button>
                 {% for category in categories %}
-                <button class="btn btn-sm btn-outline-dark category-btn" 
-                        onclick="filterCategory('{{ category.id }}', this)">
-                {{ category.name }}
-                </button>
+                    <button class="btn btn-sm btn-outline-dark category-btn" onclick="filterCategory('{{ category.id }}', this)">{{ category.name }}</button>
                 {% endfor %}
             </div>
 
             <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 g-2 g-md-3" id="products-grid">
-    {% for product in products %}
-    <div class="col product-item" 
-         data-category="{{ product.category.id }}" 
-         data-name="{{ product.name|lower }}">
-        <div class="product-card h-100" 
-             onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }}, '{% if product.image %}{{ product.image.url }}{% endif %}')">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
-            {% else %}
-                <div class="product-img d-flex align-items-center justify-content-center bg-light">
-                    <span style="font-size: 32px;">🍽️</span>
+                {% for product in products %}
+                <div class="col product-item" data-category="{{ product.category.id }}" data-name="{{ product.name|lower }}">
+                    <div class="product-card h-100" onclick="addToCart('{{ product.id }}', '{{ product.name }}', {{ product.price }}, '{% if product.image %}{{ product.image.url }}{% endif %}')">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="product-img" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="product-img d-flex align-items-center justify-content-center bg-light">
+                                <span style="font-size: 32px;">🍽️</span>
+                            </div>
+                        {% endif %}
+                        <div class="price-badge text-center">Rs. {{ product.price }}</div>
+                        <div class="p-2 text-center" style="background-color: #f1f3f5;">
+                            <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
+                            {% if product.is_deal %}
+                                <small class="text-info fw-bold">Deal</small>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-            {% endif %}
-            <div class="price-badge text-center">Rs. {{ product.price }}</div>
-            <div class="p-2 text-center" style="background-color: #f1f3f5;">
-                <h6 class="mb-1" style="font-size: 13px; font-weight: 600;">{{ product.name }}</h6>
-                {% if product.is_deal %}
-                    <small class="text-info fw-bold">Deal</small>
-                {% endif %}
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-warning text-center">No products found.</div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="alert alert-warning text-center">No products found.</div>
-    </div>
-    {% endfor %}
-</div>
-        </div>
-
     </div>
 </div>
 
@@ -303,8 +254,18 @@
     let currentCategory = 'all';
 
     function selectOrderType(button) {
-        document.querySelectorAll('.order-type-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.order-type-btn').forEach(btn => {
+            btn.classList.remove('active', 'btn-primary', 'btn-success', 'btn-warning');
+            btn.classList.add('btn-outline-primary', 'btn-outline-success', 'btn-outline-warning');
+        });
+
+        button.classList.remove('btn-outline-primary', 'btn-outline-success', 'btn-outline-warning');
         button.classList.add('active');
+
+        if (button.dataset.type === 'dine_in') button.classList.add('btn-primary');
+        if (button.dataset.type === 'take_away') button.classList.add('btn-success');
+        if (button.dataset.type === 'delivery') button.classList.add('btn-warning');
+
         selectedOrderType = button.getAttribute('data-type');
 
         const customerBox = document.getElementById('customer-box');
@@ -320,7 +281,7 @@
         }
         updateCartDisplay();
     }
-    
+
     function filterCategory(categoryId, button) {
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -328,7 +289,12 @@
         });
         button.classList.remove('btn-outline-dark');
         button.classList.add('active');
+
         currentCategory = categoryId;
+
+        if (categoryId === 'all') {
+            document.getElementById('product-search').value = '';
+        }
         filterProducts();
     }
 
@@ -337,13 +303,9 @@
         const products = Array.from(document.querySelectorAll('.product-item'));
         const grid = document.getElementById('products-grid');
 
-        // Reset all products first
-        products.forEach(product => {
-        product.style.display = 'none';
-        });
+        products.forEach(p => p.style.display = 'none');
 
         if (search === '') {
-            // No search → show all products of current category
             products.forEach(product => {
                 const category = product.getAttribute('data-category');
                 if (currentCategory === 'all' || category === currentCategory) {
@@ -353,32 +315,21 @@
             return;
         }
 
-        // Separate exact and partial matches
         const exactMatches = [];
         const partialMatches = [];
 
         products.forEach(product => {
             const name = product.getAttribute('data-name') || '';
             const category = product.getAttribute('data-category');
+            if (currentCategory !== 'all' && category !== currentCategory) return;
 
-            // Category filter
-            if (currentCategory !== 'all' && category !== currentCategory) {
-                return;
-            }
-
-            if (name === search) {
-                exactMatches.push(product);
-            } else if (name.includes(search)) {
-                partialMatches.push(product);
-            }
+            if (name === search) exactMatches.push(product);
+            else if (name.includes(search)) partialMatches.push(product);
         });
 
-        // Show exact matches first, then partial matches
-        const ordered = [...exactMatches, ...partialMatches];
-
-        ordered.forEach(product => {
+        [...exactMatches, ...partialMatches].forEach(product => {
             product.style.display = 'block';
-            grid.appendChild(product); // Move to end (so order is maintained)
+            grid.appendChild(product);
         });
     }
 
@@ -387,15 +338,9 @@
         if (existing) {
             existing.qty += 1;
         } else {
-            cart.push({
-                id: id,
-                name: name,
-                price: parseFloat(price),
-                qty: 1,
-                image: imageUrl
-            });
-     }
-    updateCartDisplay();
+            cart.push({ id, name, price: parseFloat(price), qty: 1, image: imageUrl });
+        }
+        updateCartDisplay();
     }
 
     function changeQty(id, delta) {
@@ -439,10 +384,9 @@
         cart.forEach(item => {
             const itemTotal = item.price * item.qty;
             subtotal += itemTotal;
-
-            const imageHtml = item.image 
-            ? `<img src="${item.image}" style="width:36px; height:36px; object-fit:cover; border-radius:6px; margin-right:8px;">`
-            : `<div style="width:36px; height:36px; background:#f1f3f5; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; margin-right:8px; font-size:16px;">🍽️</div>`;
+            const imageHtml = item.image
+                ? `<img src="${item.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;margin-right:8px;">`
+                : `<div style="width:36px;height:36px;background:#f1f3f5;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;font-size:16px;">🍽️</div>`;
 
             html += `
                 <tr>
@@ -450,7 +394,7 @@
                         <div class="d-flex align-items-center">
                             ${imageHtml}
                             <div>
-                                <div class="text-truncate" style="max-width:100px; font-size:13px;">${item.name}</div>
+                                <div class="text-truncate" style="max-width:100px;font-size:13px;">${item.name}</div>
                                 <small class="text-muted">Rs. ${item.price}</small>
                             </div>
                         </div>
@@ -461,56 +405,44 @@
                         <button class="btn btn-outline-secondary qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
                     </td>
                     <td class="text-end fw-bold">${itemTotal.toFixed(0)}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="changeQty('${item.id}', -999)">×</button>
-                    </td>
-                </tr>
-            `;
+                    <td><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="changeQty('${item.id}', -999)">×</button></td>
+                </tr>`;
         });
-        
+
         cartBody.innerHTML = html;
         subtotalSpan.innerText = 'Rs. ' + subtotal.toFixed(2);
         totalSpan.innerText = 'Rs. ' + Math.max(0, subtotal - discount + deliveryCharge).toFixed(2);
     }
 
     function searchCustomers() {
-    const mobile = document.getElementById('customer-mobile').value.trim();
-    const name = document.getElementById('customer-name').value.trim();
-    const query = mobile.length >= 2 ? mobile : name;
+        const mobile = document.getElementById('customer-mobile').value.trim();
+        const name = document.getElementById('customer-name').value.trim();
+        const query = mobile.length >= 2 ? mobile : name;
+        const suggestionsDiv = document.getElementById('customer-suggestions');
 
-    const suggestionsDiv = document.getElementById('customer-suggestions');
-
-    if (query.length < 2) {
-        suggestionsDiv.style.display = 'none';
-        return;
-    }
-
-    fetch('/search-customers/?q=' + encodeURIComponent(query))
-        .then(response => response.json())
-        .then(data => {
-            if (!data.customers || data.customers.length === 0) {
-                suggestionsDiv.style.display = 'none';
-                return;
-            }
-
-            let html = '';
-            data.customers.forEach(c => {
-                const safeAddress = (c.address || '').replace(/`/g, '').replace(/'/g, "\\'");
-                html += `
-                    <div class="suggestion-item" 
-                         onclick="selectCustomer('${c.name.replace(/'/g, "\\'")}', '${c.mobile}', \`${safeAddress}\`)">
-                        <strong>${c.mobile || '—'}</strong>
-                        ${c.name ? ' • ' + c.name : ''}
-                    </div>`;
-            });
-
-            suggestionsDiv.innerHTML = html;
-            suggestionsDiv.style.display = 'block';
-        })
-        .catch(err => {
-            console.error('Search error:', err);
+        if (query.length < 2) {
             suggestionsDiv.style.display = 'none';
-        });
+            return;
+        }
+
+        fetch('/search-customers/?q=' + encodeURIComponent(query))
+            .then(res => res.json())
+            .then(data => {
+                if (!data.customers || data.customers.length === 0) {
+                    suggestionsDiv.style.display = 'none';
+                    return;
+                }
+                let html = '';
+                data.customers.forEach(c => {
+                    const safeAddress = (c.address || '').replace(/`/g, '').replace(/'/g, "\\'");
+                    html += `<div class="suggestion-item" onclick="selectCustomer('${(c.name||'').replace(/'/g,"\\'")}','${c.mobile||''}',\`${safeAddress}\`)">
+                                <strong>${c.mobile || '—'}</strong>${c.name ? ' • ' + c.name : ''}
+                             </div>`;
+                });
+                suggestionsDiv.innerHTML = html;
+                suggestionsDiv.style.display = 'block';
+            })
+            .catch(() => suggestionsDiv.style.display = 'none');
     }
 
     function selectCustomer(name, mobile, address) {
@@ -521,79 +453,70 @@
     }
 
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('#customer-name') && !e.target.closest('#customer-suggestions')) {
+        if (!e.target.closest('#customer-mobile') && !e.target.closest('#customer-suggestions')) {
             document.getElementById('customer-suggestions').style.display = 'none';
         }
     });
 
     function completeSale() {
-    if (cart.length === 0) {
-        alert('Cart is empty!');
-        return;
-    }
-
-    if (selectedOrderType === 'delivery') {
-        const name = document.getElementById('customer-name').value.trim();
-        if (!name) {
-            alert('Please enter Customer Name for Delivery order');
+        if (cart.length === 0) {
+            alert('Cart is empty!');
             return;
         }
-    }
 
-    const discount = parseFloat(document.getElementById('discount-input').value) || 0;
-    const deliveryCharge = parseFloat(document.getElementById('delivery-charge').value) || 0;
-    // Get current device time
-    const now = new Date();
-    const clientTime = now.toISOString();   // Send in ISO format
-    // No confirmation alert — complete immediately
-    fetch('/complete-sale/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            cart: cart,
-            order_type: selectedOrderType,
-            discount: discount,
-            delivery_charge: deliveryCharge,
-            customer_name: document.getElementById('customer-name').value.trim(),
-            customer_mobile: document.getElementById('customer-mobile').value.trim(),
-            customer_address: document.getElementById('customer-address').value.trim(),
-            client_time: clientTime          // ← New field
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // Clear cart
-            cart = [];
-            document.getElementById('discount-input').value = 0;
-            document.getElementById('delivery-charge').value = 0;
-            document.getElementById('customer-name').value = '';
-            document.getElementById('customer-mobile').value = '';
-            document.getElementById('customer-address').value = '';
-            updateCartDisplay();
-
-            // Open receipt and trigger print
-            const receiptWindow = window.open('/receipt/' + data.invoice_no + '/', '_blank');
-            
-            // Optional: auto print after receipt loads
-            if (receiptWindow) {
-                receiptWindow.onload = function() {
-                    receiptWindow.print();
-                };
+        if (selectedOrderType === 'delivery') {
+            const name = document.getElementById('customer-name').value.trim();
+            if (!name) {
+                alert('Please enter Customer Name for Delivery order');
+                return;
             }
-
-            // Reload products after short delay (to update stock)
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            alert('Error: ' + data.message);
         }
-    })
-    .catch(err => {
-        alert('Something went wrong!');
-        console.error(err);
-    });
-}
-</script>
 
+        const discount = parseFloat(document.getElementById('discount-input').value) || 0;
+        const deliveryCharge = parseFloat(document.getElementById('delivery-charge').value) || 0;
+        const clientTime = new Date().toISOString();
+
+        fetch('/complete-sale/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cart: cart,
+                order_type: selectedOrderType,
+                discount: discount,
+                delivery_charge: deliveryCharge,
+                customer_name: document.getElementById('customer-name').value.trim(),
+                customer_mobile: document.getElementById('customer-mobile').value.trim(),
+                customer_address: document.getElementById('customer-address').value.trim(),
+                client_time: clientTime
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                cart = [];
+                document.getElementById('discount-input').value = '';
+                document.getElementById('delivery-charge').value = '';
+                document.getElementById('customer-name').value = '';
+                document.getElementById('customer-mobile').value = '';
+                document.getElementById('customer-address').value = '';
+                updateCartDisplay();
+
+                const receiptWindow = window.open('/receipt/' + data.invoice_no + '/', '_blank');
+                if (receiptWindow) {
+                    receiptWindow.onload = function() {
+                        receiptWindow.print();
+                    };
+                }
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => {
+            alert('Something went wrong!');
+            console.error(err);
+        });
+    }
+</script>
 </body>
 </html>
