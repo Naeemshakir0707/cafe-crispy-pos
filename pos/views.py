@@ -10,7 +10,6 @@ from django.utils.dateparse import parse_datetime
 from datetime import datetime
 from decimal import Decimal
 import json
-import pytz
 
 from .models import (
     Restaurant, UserProfile, Category, Product, Sale, SaleItem,
@@ -69,10 +68,11 @@ def complete_sale(request):
 
         if client_time_str:
             try:
+                from django.utils.dateparse import parse_datetime
                 parsed = parse_datetime(client_time_str)
                 if parsed:
                     if timezone.is_naive(parsed):
-                        client_time = timezone.make_aware(parsed, pytz.timezone('Asia/Karachi'))
+                        client_time = timezone.make_aware(parsed)
                     else:
                         client_time = parsed
             except Exception as e:
