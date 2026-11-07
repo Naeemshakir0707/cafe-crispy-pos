@@ -4,9 +4,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Restaurant, UserProfile, Category, Product, Sale, SaleItem, Customer
-from decimal import Decimal
 import json
 from datetime import datetime
+ from django.utils.dateparse import parse_datetime
+from django.utils import timezone
+import pytz
+from decimal import Decimal
 
 def get_user_restaurant(user):
     """Helper function to get the restaurant of the logged-in user"""
@@ -44,9 +47,7 @@ def pos_screen(request):
 @login_required(login_url='login')
 @csrf_exempt
 def complete_sale(request):
-    from django.utils.dateparse import parse_datetime
-    from django.utils import timezone
-    import pytz
+   
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return JsonResponse({'success': False, 'message': 'No restaurant assigned'})
@@ -55,17 +56,19 @@ def complete_sale(request):
         try:
             data = json.loads(request.body)
             client_time_str = data.get('client_time')
+            client_time = timezone.now()   # default
             if client_time_str:
                 try:
-                    # Parse the client time
-                    client_time = parse_datetime(client_time_str)
-                    if client_time and timezone.is_naive(client_time):
-                        # Make it timezone aware (use Pakistan time as default)
-                        client_time = timezone.make_aware(client_time, pytz.timezone('Asia/Karachi'))
-                except:
-                client_time = timezone.now()
-            else:
-                client_time = timezone.now()
+                    parsed = parse_datetime(client_time_str)
+                    if parsed:
+                        if timezone.is_naive(parsed):
+                            # Make it Pakistan timezone
+                            client_time = timezone.make_aware(parsed, pytz.timezone('Asia/Karachi'))
+                        else:
+                            client_time = parsed
+                except Exception as e:
+                    print("Time parse error:", e)
+                    client_time = timezone.now()
             cart = data.get('cart', [])
 
             if not cart:
