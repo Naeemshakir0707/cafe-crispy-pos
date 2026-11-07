@@ -3,34 +3,39 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .models import Restaurant, UserProfile, Category, Product, Sale, SaleItem, Customer
-import json
-from datetime import datetime
- from django.utils.dateparse import parse_datetime
+from django.contrib.auth.models import User
+from django.db.models import Sum, Count, F, Q
 from django.utils import timezone
-import pytz
+from django.utils.dateparse import parse_datetime
+from datetime import datetime
 from decimal import Decimal
+import json
+import pytz
+
+from .models import (
+    Restaurant, UserProfile, Category, Product, Sale, SaleItem,
+    Customer, Ingredient, RecipeItem, DealComponent
+)
+
 
 def get_user_restaurant(user):
-    """Helper function to get the restaurant of the logged-in user"""
     try:
         profile = UserProfile.objects.get(user=user)
         return profile.restaurant
     except UserProfile.DoesNotExist:
         return None
 
+
 def user_is_manager(user):
-    """Check if the logged-in user is a manager of their restaurant"""
     try:
-        profile = user.userprofile
-        return profile.is_manager
+        return user.userprofile.is_manager
     except:
         return False
+
 
 @login_required(login_url='login')
 def pos_screen(request):
     restaurant = get_user_restaurant(request.user)
-    
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
@@ -44,134 +49,136 @@ def pos_screen(request):
     }
     return render(request, 'pos/pos.html', context)
 
+
 @login_required(login_url='login')
 @csrf_exempt
 def complete_sale(request):
-   
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return JsonResponse({'success': False, 'message': 'No restaurant assigned'})
 
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            client_time_str = data.get('client_time')
-            client_time = timezone.now()   # default
-            if client_time_str:
-                try:
-                    parsed = parse_datetime(client_time_str)
-                    if parsed:
-                        if timezone.is_naive(parsed):
-                            # Make it Pakistan timezone
-                            client_time = timezone.make_aware(parsed, pytz.timezone('Asia/Karachi'))
-                        else:
-                            client_time = parsed
-                except Exception as e:
-                    print("Time parse error:", e)
-                    client_time = timezone.now()
-            cart = data.get('cart', [])
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request'})
 
-            if not cart:
-                return JsonResponse({'success': False, 'message': 'Cart is empty'})
+    try:
+        data = json.loads(request.body)
 
-            subtotal = Decimal('0.00')
-            for item in cart:
-                subtotal += Decimal(str(item['price'])) * item['qty']
+        # ===== Device Time Handling =====
+        client_time_str = data.get('client_time')
+        client_time = timezone.now()
 
-            discount = Decimal(str(data.get('discount', 0)))
-            delivery_charge = Decimal(str(data.get('delivery_charge', 0)))
-            total = subtotal - discount + delivery_charge
-            if total < 0:
-                total = Decimal('0.00')
+        if client_time_str:
+            try:
+                parsed = parse_datetime(client_time_str)
+                if parsed:
+                    if timezone.is_naive(parsed):
+                        client_time = timezone.make_aware(parsed, pytz.timezone('Asia/Karachi'))
+                    else:
+                        client_time = parsed
+            except Exception as e:
+                print("Time parse error:", e)
+                client_time = timezone.now()
+        # ================================
 
-            # Handle Customer
-            customer = None
-            customer_name = data.get('customer_name', '').strip()
-            customer_mobile = data.get('customer_mobile', '').strip()
-            customer_address = data.get('customer_address', '').strip()
+        cart = data.get('cart', [])
+        if not cart:
+            return JsonResponse({'success': False, 'message': 'Cart is empty'})
 
-            if customer_name:
-                customer, created = Customer.objects.get_or_create(
-                    restaurant=restaurant,
-                    name=customer_name,
-                    mobile=customer_mobile,
-                    defaults={'address': customer_address}
-                )
-                if not created and customer_address:
-                    customer.address = customer_address
-                    customer.save()
+        subtotal = Decimal('0.00')
+        for item in cart:
+            subtotal += Decimal(str(item['price'])) * item['qty']
 
-            # Generate Invoice Number
-            today = datetime.now().strftime('%Y%m%d')
-            prefix = f"{restaurant.name[:6].upper().replace(' ', '')}-{today}"
-            last_sale = Sale.objects.filter(restaurant=restaurant, invoice_no__startswith=prefix).order_by('-id').first()
+        discount = Decimal(str(data.get('discount', 0)))
+        delivery_charge = Decimal(str(data.get('delivery_charge', 0)))
+        total = max(Decimal('0.00'), subtotal - discount + delivery_charge)
 
-            if last_sale:
-                last_number = int(last_sale.invoice_no.split('-')[-1])
-                new_number = last_number + 1
-            else:
+        # Handle Customer
+        customer = None
+        customer_name = data.get('customer_name', '').strip()
+        customer_mobile = data.get('customer_mobile', '').strip()
+        customer_address = data.get('customer_address', '').strip()
+
+        if customer_name:
+            customer, created = Customer.objects.get_or_create(
+                restaurant=restaurant,
+                name=customer_name,
+                mobile=customer_mobile,
+                defaults={'address': customer_address}
+            )
+            if not created and customer_address:
+                customer.address = customer_address
+                customer.save()
+
+        # Generate Invoice Number
+        today = datetime.now().strftime('%Y%m%d')
+        prefix = f"{restaurant.name[:6].upper().replace(' ', '')}-{today}"
+        last_sale = Sale.objects.filter(
+            restaurant=restaurant,
+            invoice_no__startswith=prefix
+        ).order_by('-id').first()
+
+        new_number = 1
+        if last_sale:
+            try:
+                new_number = int(last_sale.invoice_no.split('-')[-1]) + 1
+            except:
                 new_number = 1
 
-            invoice_no = f"{prefix}-{new_number:04d}"
+        invoice_no = f"{prefix}-{new_number:04d}"
 
-            sale = Sale.objects.create(
-                restaurant=restaurant,
-                invoice_no=invoice_no,
-                order_type=data.get('order_type', 'take_away'),
-                customer=customer,
-                subtotal=subtotal,
-                discount=discount,
-                delivery_charge=delivery_charge,
-                total=total,
-                status='completed',
-                created_by=request.user,
-                created_at=client_time          # ← Use device time
+        sale = Sale.objects.create(
+            restaurant=restaurant,
+            invoice_no=invoice_no,
+            order_type=data.get('order_type', 'take_away'),
+            customer=customer,
+            subtotal=subtotal,
+            discount=discount,
+            delivery_charge=delivery_charge,
+            total=total,
+            status='completed',
+            created_by=request.user,
+            created_at=client_time
+        )
+
+        for item in cart:
+            product = Product.objects.get(id=item['id'], restaurant=restaurant)
+            qty = item['qty']
+
+            SaleItem.objects.create(
+                sale=sale,
+                product=product,
+                quantity=qty,
+                price=Decimal(str(item['price'])),
+                total=Decimal(str(item['price'])) * qty
             )
 
-            for item in cart:
-                product = Product.objects.get(id=item['id'], restaurant=restaurant)
-
-                SaleItem.objects.create(
-                    sale=sale,
-                    product=product,
-                    quantity=item['qty'],
-                    price=Decimal(str(item['price'])),
-                    total=Decimal(str(item['price'])) * item['qty']
-                )
-
-                # ===== Stock Reduction (Supports both simple stock + Recipe/Ingredients) =====
-                product = Product.objects.get(id=item['id'], restaurant=restaurant)
-                qty_sold = item['qty']
-
-                # 1. If product has a Recipe → reduce ingredients
-                recipe_items = product.recipe_items.all()
-                if recipe_items.exists():
-                    for recipe in recipe_items:
-                        ingredient = recipe.ingredient
-                        used_qty = recipe.quantity * qty_sold
-                        ingredient.stock = max(0, ingredient.stock - used_qty)
-                        ingredient.save()
+            # Stock Reduction
+            recipe_items = product.recipe_items.all()
+            if recipe_items.exists():
+                for recipe in recipe_items:
+                    ingredient = recipe.ingredient
+                    used_qty = recipe.quantity * qty
+                    ingredient.stock = max(0, ingredient.stock - used_qty)
+                    ingredient.save()
+            else:
+                if product.is_deal:
+                    for component in product.components.all():
+                        component.product.stock = max(0, component.product.stock - (component.quantity * qty))
+                        component.product.save()
                 else:
-                    # 2. Normal product or Deal (old logic)
-                    if product.is_deal:
-                        for component in product.components.all():
-                            component.product.stock = max(0, component.product.stock - (component.quantity * qty_sold))
-                            component.product.save()
-                    else:
-                        product.stock = max(0, product.stock - qty_sold)
-                        product.save()
+                    product.stock = max(0, product.stock - qty)
+                    product.save()
 
-            return JsonResponse({
-                'success': True,
-                'message': 'Sale completed successfully!',
-                'invoice_no': invoice_no,
-                'total': str(total)
-            })
+        return JsonResponse({
+            'success': True,
+            'message': 'Sale completed successfully!',
+            'invoice_no': invoice_no,
+            'total': str(total)
+        })
 
-        except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})
 
-    return JsonResponse({'success': False, 'message': 'Invalid request'})
 
 @login_required(login_url='login')
 def sales_history(request):
@@ -179,15 +186,11 @@ def sales_history(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
-
-    from datetime import datetime
+        return redirect('pos')
 
     sales = Sale.objects.filter(restaurant=restaurant).order_by('-created_at')
 
-    # Filters
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     search = request.GET.get('search', '').strip()
@@ -224,6 +227,7 @@ def sales_history(request):
     }
     return render(request, 'pos/sales_history.html', context)
 
+
 @login_required(login_url='login')
 def receipt(request, invoice_no):
     restaurant = get_user_restaurant(request.user)
@@ -232,15 +236,15 @@ def receipt(request, invoice_no):
 
     try:
         sale = Sale.objects.get(invoice_no=invoice_no, restaurant=restaurant)
-        items = sale.items.all()
         context = {
             'sale': sale,
-            'items': items,
+            'items': sale.items.all(),
             'restaurant': restaurant,
         }
         return render(request, 'pos/receipt.html', context)
     except Sale.DoesNotExist:
         return render(request, 'pos/receipt.html', {'error': 'Sale not found'})
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -259,9 +263,11 @@ def login_view(request):
 
     return render(request, 'pos/login.html', {'error': error})
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
+
 
 @login_required(login_url='login')
 def dashboard(request):
@@ -269,17 +275,10 @@ def dashboard(request):
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
 
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
-        
-    from django.utils import timezone
-    from django.db.models import Sum
-    from datetime import datetime
+        return redirect('pos')
 
     today = timezone.now().date()
-
-    # Get dates from filter
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
 
@@ -288,32 +287,29 @@ def dashboard(request):
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
         except:
-            start_date = today
+            start_date = today.replace(day=1)
             end_date = today
     else:
         start_date = today.replace(day=1)
         end_date = today
 
-    # Only COMPLETED sales
     filtered_sales = Sale.objects.filter(
         restaurant=restaurant,
         status='completed',
         created_at__date__gte=start_date,
         created_at__date__lte=end_date
     )
-    total_sales = sum(sale.total for sale in filtered_sales)
+    total_sales = sum(s.total for s in filtered_sales)
     total_orders = filtered_sales.count()
 
-    # Today's completed sales
     today_sales = Sale.objects.filter(
         restaurant=restaurant,
         status='completed',
         created_at__date=today
     )
-    total_sales_today = sum(sale.total for sale in today_sales)
+    total_sales_today = sum(s.total for s in today_sales)
     total_orders_today = today_sales.count()
 
-    # Top Selling Products (only completed sales)
     top_products = (
         SaleItem.objects
         .filter(
@@ -327,23 +323,14 @@ def dashboard(request):
         .order_by('-total_qty')[:100]
     )
 
-    # Low Stock Products
-    # Low Stock Products (only products that do NOT have a recipe)
-    from django.db.models import Count, F
-    from .models import Ingredient
-
-    # Low Stock Products (only products that do NOT have a recipe)
     low_stock_products = Product.objects.filter(
         restaurant=restaurant,
         is_active=True,
         stock__lte=10
     ).annotate(
         recipe_count=Count('recipe_items')
-    ).filter(
-        recipe_count=0
-    ).order_by('stock')
+    ).filter(recipe_count=0).order_by('stock')
 
-    # Low Stock Ingredients
     low_stock_ingredients = Ingredient.objects.filter(
         restaurant=restaurant,
         is_active=True,
@@ -358,21 +345,19 @@ def dashboard(request):
         'total_orders_today': total_orders_today,
         'top_products': top_products,
         'low_stock_products': low_stock_products,
+        'low_stock_ingredients': low_stock_ingredients,
         'start_date': start_date,
         'end_date': end_date,
         'today': today,
-        'low_stock_products': low_stock_products,
-        'low_stock_ingredients': low_stock_ingredients,
     }
     return render(request, 'pos/dashboard.html', context)
+
 
 @login_required(login_url='login')
 def manage_categories(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
         return redirect('pos')
 
@@ -380,12 +365,10 @@ def manage_categories(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-
         if action == 'add':
             name = request.POST.get('name')
             if name:
                 Category.objects.create(restaurant=restaurant, name=name)
-
         elif action == 'edit':
             cat_id = request.POST.get('category_id')
             name = request.POST.get('name')
@@ -393,29 +376,24 @@ def manage_categories(request):
             if category and name:
                 category.name = name
                 category.save()
-
         elif action == 'delete':
             cat_id = request.POST.get('category_id')
             Category.objects.filter(id=cat_id, restaurant=restaurant).delete()
-
         return redirect('manage_categories')
 
-    context = {
+    return render(request, 'pos/manage_categories.html', {
         'restaurant': restaurant,
         'categories': categories,
-    }
-    return render(request, 'pos/manage_categories.html', context)
+    })
+
 
 @login_required(login_url='login')
 def manage_products(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
-    from .models import DealComponent
+        return redirect('pos')
 
     products = Product.objects.filter(restaurant=restaurant).select_related('category').order_by('name')
     categories = Category.objects.filter(restaurant=restaurant, is_active=True)
@@ -431,12 +409,7 @@ def manage_products(request):
             stock = request.POST.get('stock', 0)
             is_deal = request.POST.get('is_deal') == 'on'
             image = request.FILES.get('image')
-            print("=== ADD PRODUCT DEBUG ===")
-            print("Restaurant:", restaurant)
-            print("Name:", name)
-            print("Category:", category_id)
-            print("Price:", price)
-            print("Image:", image)
+
             if name and category_id and price:
                 try:
                     Product.objects.create(
@@ -461,15 +434,9 @@ def manage_products(request):
                 prod.price = request.POST.get('price', prod.price)
                 prod.is_deal = request.POST.get('is_deal') == 'on'
                 prod.is_active = True
-
-                if prod.is_deal:
-                    prod.stock = 0
-                else:
-                    prod.stock = request.POST.get('stock', prod.stock)
-
+                prod.stock = 0 if prod.is_deal else request.POST.get('stock', prod.stock)
                 if request.FILES.get('image'):
                     prod.image = request.FILES.get('image')
-
                 prod.save()
 
         elif action == 'delete':
@@ -480,16 +447,10 @@ def manage_products(request):
             deal_id = request.POST.get('deal_id')
             component_id = request.POST.get('component_product')
             quantity = request.POST.get('quantity', 1)
-
             deal = Product.objects.filter(id=deal_id, restaurant=restaurant, is_deal=True).first()
             component = Product.objects.filter(id=component_id, restaurant=restaurant).first()
-
             if deal and component:
-                DealComponent.objects.create(
-                    deal=deal,
-                    product=component,
-                    quantity=quantity
-                )
+                DealComponent.objects.create(deal=deal, product=component, quantity=quantity)
 
         elif action == 'remove_component':
             component_id = request.POST.get('component_id')
@@ -497,13 +458,12 @@ def manage_products(request):
 
         return redirect('manage_products')
 
-    context = {
+    return render(request, 'pos/manage_products.html', {
         'restaurant': restaurant,
         'products': products,
         'categories': categories,
         'all_products': all_products,
-    }
-    return render(request, 'pos/manage_products.html', context)
+    })
 
 
 @login_required(login_url='login')
@@ -513,12 +473,11 @@ def last_10_sales(request):
         return render(request, 'pos/no_restaurant.html')
 
     sales = Sale.objects.filter(restaurant=restaurant).order_by('-created_at')[:10]
-
-    context = {
+    return render(request, 'pos/last_10_sales.html', {
         'sales': sales,
         'restaurant': restaurant,
-    }
-    return render(request, 'pos/last_10_sales.html', context)
+    })
+
 
 @login_required(login_url='login')
 def cancel_sale(request, sale_id):
@@ -527,152 +486,113 @@ def cancel_sale(request, sale_id):
         return redirect('dashboard')
 
     sale = Sale.objects.filter(id=sale_id, restaurant=restaurant).first()
-    
     if sale and sale.status == 'completed':
-        # Restore stock
         for item in sale.items.all():
             product = item.product
+            # Restore stock (simple version)
             product.stock += item.quantity
             product.save()
-        
-        # Mark as cancelled
         sale.status = 'cancelled'
         sale.save()
 
     return redirect(request.META.get('HTTP_REFERER', 'sales_history'))
 
-from django.db.models import Q
-from django.http import JsonResponse
 
 @login_required(login_url='login')
 def search_customers(request):
     restaurant = get_user_restaurant(request.user)
     q = request.GET.get('q', '').strip()
-
     customers = []
+
     if restaurant and len(q) >= 2:
-        from .models import Customer
-        results = Customer.objects.filter(
-            restaurant=restaurant
-        ).filter(
+        results = Customer.objects.filter(restaurant=restaurant).filter(
             Q(name__icontains=q) | Q(mobile__icontains=q)
         ).order_by('-id')[:10]
 
         customers = [
-            {
-                'name': c.name or '',
-                'mobile': c.mobile or '',
-                'address': c.address or ''
-            }
+            {'name': c.name or '', 'mobile': c.mobile or '', 'address': c.address or ''}
             for c in results
         ]
 
     return JsonResponse({'customers': customers})
+
 
 @login_required(login_url='login')
 def daily_closing(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
-        
-    from datetime import datetime
-    from django.db.models import Sum, Count
+        return redirect('pos')
 
-    # Get selected date (default = today)
     date_str = request.GET.get('date')
     if date_str:
         try:
             selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         except:
-            selected_date = datetime.now().date()
+            selected_date = timezone.now().date()
     else:
-        selected_date = datetime.now().date()
+        selected_date = timezone.now().date()
 
-    # Only completed sales of selected date
     sales = Sale.objects.filter(
         restaurant=restaurant,
         status='completed',
         created_at__date=selected_date
     ).order_by('created_at')
 
-    total_sales = sum(sale.total for sale in sales)
-    total_orders = sales.count()
-    total_discount = sum(sale.discount for sale in sales)
-    total_delivery = sum(sale.delivery_charge for sale in sales)
-    total_subtotal = sum(sale.subtotal for sale in sales)
-
-    # Breakdown by order type
-    dine_in = sales.filter(order_type='dine_in')
-    take_away = sales.filter(order_type='take_away')
-    delivery = sales.filter(order_type='delivery')
-
     context = {
         'restaurant': restaurant,
         'selected_date': selected_date,
         'sales': sales,
-        'total_sales': total_sales,
-        'total_orders': total_orders,
-        'total_discount': total_discount,
-        'total_delivery': total_delivery,
-        'total_subtotal': total_subtotal,
-        'dine_in_count': dine_in.count(),
-        'dine_in_total': sum(s.total for s in dine_in),
-        'take_away_count': take_away.count(),
-        'take_away_total': sum(s.total for s in take_away),
-        'delivery_count': delivery.count(),
-        'delivery_total': sum(s.total for s in delivery),
+        'total_sales': sum(s.total for s in sales),
+        'total_orders': sales.count(),
+        'total_discount': sum(s.discount for s in sales),
+        'total_delivery': sum(s.delivery_charge for s in sales),
+        'total_subtotal': sum(s.subtotal for s in sales),
+        'dine_in_count': sales.filter(order_type='dine_in').count(),
+        'dine_in_total': sum(s.total for s in sales.filter(order_type='dine_in')),
+        'take_away_count': sales.filter(order_type='take_away').count(),
+        'take_away_total': sum(s.total for s in sales.filter(order_type='take_away')),
+        'delivery_count': sales.filter(order_type='delivery').count(),
+        'delivery_total': sum(s.total for s in sales.filter(order_type='delivery')),
     }
     return render(request, 'pos/daily_closing.html', context)
+
 
 @login_required(login_url='login')
 def stock_adjustment(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
+        return redirect('pos')
 
     products = Product.objects.filter(restaurant=restaurant, is_deal=False).order_by('name')
 
     if request.method == 'POST':
         product_id = request.POST.get('product_id')
         adjustment = request.POST.get('adjustment')
-        reason = request.POST.get('reason', '').strip()
-
         try:
             product = Product.objects.get(id=product_id, restaurant=restaurant)
-            adjustment = int(adjustment)
-
-            product.stock = max(0, product.stock + adjustment)
+            product.stock = max(0, product.stock + int(adjustment))
             product.save()
-
-            # Optional: You can later log this adjustment if needed
         except:
             pass
-
         return redirect('stock_adjustment')
 
-    context = {
+    return render(request, 'pos/stock_adjustment.html', {
         'restaurant': restaurant,
         'products': products,
-    }
-    return render(request, 'pos/stock_adjustment.html', context)
+    })
+
 
 @login_required(login_url='login')
 def restaurant_settings(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
+        return redirect('pos')
 
     if request.method == 'POST':
         restaurant.name = request.POST.get('name', restaurant.name).strip()
@@ -680,39 +600,24 @@ def restaurant_settings(request):
         restaurant.phone = request.POST.get('phone', '').strip()
         restaurant.primary_color = request.POST.get('primary_color', '#0d6efd')
         restaurant.secondary_color = request.POST.get('secondary_color', '#198754')
-
-        # Only update logo if a new file is uploaded
         if request.FILES.get('logo'):
             restaurant.logo = request.FILES.get('logo')
-
         restaurant.save()
-        
-        # Force refresh
         return redirect('restaurant_settings')
 
-    context = {
-        'restaurant': restaurant,
-    }
-    return render(request, 'pos/restaurant_settings.html', context)
+    return render(request, 'pos/restaurant_settings.html', {'restaurant': restaurant})
+
 
 @login_required(login_url='login')
 def manage_staff(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
+        return redirect('pos')
 
-    from django.contrib.auth.models import User
-    from .models import UserProfile
-
-    # Get all staff of this restaurant
     staff_list = UserProfile.objects.filter(restaurant=restaurant).select_related('user')
-
-    message = None
-    error = None
+    message = error = None
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -720,27 +625,21 @@ def manage_staff(request):
         if action == 'add':
             username = request.POST.get('username', '').strip()
             password = request.POST.get('password', '').strip()
-            is_manager = request.POST.get('is_manager') == 'on'
+            is_manager_flag = request.POST.get('is_manager') == 'on'
 
             if not username or not password:
                 error = "Username and Password are required."
             elif User.objects.filter(username=username).exists():
-                error = "This username is already taken. Please choose another."
+                error = "This username is already taken."
             else:
-                # Create user
                 user = User.objects.create_user(username=username, password=password)
-                # Link to restaurant
-                UserProfile.objects.create(
-                    user=user,
-                    restaurant=restaurant,
-                    is_manager=is_manager
-                )
+                UserProfile.objects.create(user=user, restaurant=restaurant, is_manager=is_manager_flag)
                 message = f"Staff '{username}' created successfully."
 
         elif action == 'delete':
             profile_id = request.POST.get('profile_id')
             profile = UserProfile.objects.filter(id=profile_id, restaurant=restaurant).first()
-            if profile and profile.user != request.user:  # Prevent deleting yourself
+            if profile and profile.user != request.user:
                 user = profile.user
                 profile.delete()
                 user.delete()
@@ -748,45 +647,36 @@ def manage_staff(request):
             else:
                 error = "You cannot delete your own account."
 
-    context = {
+    return render(request, 'pos/manage_staff.html', {
         'restaurant': restaurant,
         'staff_list': staff_list,
         'message': message,
         'error': error,
-    }
-    return render(request, 'pos/manage_staff.html', context)
+    })
+
 
 @login_required(login_url='login')
 def manage_ingredients(request):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
+        return redirect('pos')
 
-    from .models import Ingredient
     ingredients = Ingredient.objects.filter(restaurant=restaurant).order_by('name')
 
     if request.method == 'POST':
         action = request.POST.get('action')
-
         if action == 'add':
             name = request.POST.get('name', '').strip()
-            unit = request.POST.get('unit', 'gram')
-            stock = request.POST.get('stock', 0)
-            threshold = request.POST.get('low_stock_threshold', 100)
-
             if name:
                 Ingredient.objects.create(
                     restaurant=restaurant,
                     name=name,
-                    unit=unit,
-                    stock=stock or 0,
-                    low_stock_threshold=threshold or 100
+                    unit=request.POST.get('unit', 'gram'),
+                    stock=request.POST.get('stock', 0) or 0,
+                    low_stock_threshold=request.POST.get('low_stock_threshold', 100) or 100
                 )
-
         elif action == 'edit':
             ing_id = request.POST.get('ingredient_id')
             ingredient = Ingredient.objects.filter(id=ing_id, restaurant=restaurant).first()
@@ -796,18 +686,15 @@ def manage_ingredients(request):
                 ingredient.stock = request.POST.get('stock', ingredient.stock)
                 ingredient.low_stock_threshold = request.POST.get('low_stock_threshold', ingredient.low_stock_threshold)
                 ingredient.save()
-
         elif action == 'delete':
             ing_id = request.POST.get('ingredient_id')
             Ingredient.objects.filter(id=ing_id, restaurant=restaurant).delete()
-
         return redirect('manage_ingredients')
 
-    context = {
+    return render(request, 'pos/manage_ingredients.html', {
         'restaurant': restaurant,
         'ingredients': ingredients,
-    }
-    return render(request, 'pos/manage_ingredients.html', context)
+    })
 
 
 @login_required(login_url='login')
@@ -815,12 +702,8 @@ def manage_recipe(request, product_id):
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return render(request, 'pos/no_restaurant.html')
-
-    # Only managers can access
     if not user_is_manager(request.user):
-        return redirect('pos')   # or show a permission denied page
-
-    from .models import Ingredient, RecipeItem, Product
+        return redirect('pos')
 
     product = Product.objects.filter(id=product_id, restaurant=restaurant).first()
     if not product:
@@ -831,27 +714,19 @@ def manage_recipe(request, product_id):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-
         if action == 'add_recipe':
             ingredient_id = request.POST.get('ingredient_id')
             quantity = request.POST.get('quantity')
             if ingredient_id and quantity:
-                RecipeItem.objects.create(
-                    product=product,
-                    ingredient_id=ingredient_id,
-                    quantity=quantity
-                )
-
+                RecipeItem.objects.create(product=product, ingredient_id=ingredient_id, quantity=quantity)
         elif action == 'remove_recipe':
             recipe_id = request.POST.get('recipe_id')
             RecipeItem.objects.filter(id=recipe_id, product=product).delete()
-
         return redirect('manage_recipe', product_id=product.id)
 
-    context = {
+    return render(request, 'pos/manage_recipe.html', {
         'restaurant': restaurant,
         'product': product,
         'ingredients': ingredients,
         'recipe_items': recipe_items,
-    }
-    return render(request, 'pos/manage_recipe.html', context)
+    })
