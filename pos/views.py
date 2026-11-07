@@ -44,6 +44,9 @@ def pos_screen(request):
 @login_required(login_url='login')
 @csrf_exempt
 def complete_sale(request):
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone
+    import pytz
     restaurant = get_user_restaurant(request.user)
     if not restaurant:
         return JsonResponse({'success': False, 'message': 'No restaurant assigned'})
@@ -51,6 +54,18 @@ def complete_sale(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            client_time_str = data.get('client_time')
+            if client_time_str:
+                try:
+                    # Parse the client time
+                    client_time = parse_datetime(client_time_str)
+                    if client_time and timezone.is_naive(client_time):
+                        # Make it timezone aware (use Pakistan time as default)
+                        client_time = timezone.make_aware(client_time, pytz.timezone('Asia/Karachi'))
+                except:
+                client_time = timezone.now()
+            else:
+                client_time = timezone.now()
             cart = data.get('cart', [])
 
             if not cart:
@@ -106,7 +121,8 @@ def complete_sale(request):
                 delivery_charge=delivery_charge,
                 total=total,
                 status='completed',
-                created_by=request.user
+                created_by=request.user,
+                created_at=client_time          # ← Use device time
             )
 
             for item in cart:
@@ -305,7 +321,7 @@ def dashboard(request):
         )
         .values('product__name')
         .annotate(total_qty=Sum('quantity'))
-        .order_by('-total_qty')[:5]
+        .order_by('-total_qty')[:100]
     )
 
     # Low Stock Products
