@@ -458,7 +458,13 @@
         }
     });
 
+    let isProcessing = false;   // Prevent double click
+
     function completeSale() {
+        if (isProcessing) {
+            return;   // Already processing → ignore second click
+        }
+
         if (cart.length === 0) {
             alert('Cart is empty!');
             return;
@@ -470,6 +476,15 @@
                 alert('Please enter Customer Name for Delivery order');
                 return;
             }
+        }
+
+        isProcessing = true;
+
+        // Disable the button immediately
+        const btn = document.querySelector('button[onclick="completeSale()"]');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
         }
 
         const discount = parseFloat(document.getElementById('discount-input').value) || 0;
@@ -493,6 +508,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                // Clear cart
                 cart = [];
                 document.getElementById('discount-input').value = '';
                 document.getElementById('delivery-charge').value = '';
@@ -501,20 +517,34 @@
                 document.getElementById('customer-address').value = '';
                 updateCartDisplay();
 
+                // Open receipt
                 const receiptWindow = window.open('/receipt/' + data.invoice_no + '/', '_blank');
                 if (receiptWindow) {
-                    receiptWindow.onload = function() {
+                    receiptWindow.onload = function () {
                         receiptWindow.print();
                     };
                 }
-                setTimeout(() => location.reload(), 1000);
+
+                // Reload after short delay
+                setTimeout(() => location.reload(), 800);
             } else {
-                alert('Error: ' + data.message);
+                // Show real error message from server
+                alert('Error: ' + (data.message || 'Unknown error'));
+                isProcessing = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Complete Sale';
+                }
             }
         })
         .catch(err => {
-            alert('Something went wrong!');
             console.error(err);
+            alert('Something went wrong! Please try again.\n\nDetails: ' + err.message);
+            isProcessing = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'Complete Sale';
+            }
         });
     }
 </script>
